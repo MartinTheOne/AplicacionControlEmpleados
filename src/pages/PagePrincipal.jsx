@@ -5,6 +5,7 @@ import Empleados from "./Empleados";
 import Lugares from "./Lugares";
 import Informe from "./Informe";
 import InformePasado from "./InformesPasados"; 
+import Inicio from "./Inicio";
 
 const Principal = () => {
   const [component, setComponent] = useState("");
@@ -23,7 +24,7 @@ const Principal = () => {
       ) : component === "Informes Pasados" ? (
         <InformePasado/>
       ) : (
-        ""
+        <Inicio/>
       )}
     </div>
   );
