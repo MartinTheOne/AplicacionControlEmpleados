@@ -4,7 +4,7 @@ const Inicio =()=>{
         <div className="m-4 mt-[60px]">
           <h2 className="text-[30px] text-center">BIENVEDIO AL CONTROL DE EMPLEADOS</h2>
         </div>
-        <div className="flex flex-col items-center gap-4 bg-slate-300 h-[400px] w-[330px] rounded-xl p-4 text-[15px]">
+        <div className="flex flex-col items-center gap-4 bg-slate-300 h-[430px] w-[330px] rounded-xl p-4 text-[15px]">
           
   
           <div className="w-[300px] flex flex-col items-center font-mono">
