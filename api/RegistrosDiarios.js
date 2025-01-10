@@ -59,7 +59,7 @@ export default async function RegistroDiarios(req, res) {
     }
     if (req.method == "POST") {
         try {
-            const { fecha, docEmpleado, horas, lugar, precioLugar } = req.body;
+            const { fecha, docEmpleado, horas, lugar, precioLugar,presentismo,boleto } = req.body;
 
             if (!fecha || !docEmpleado || !horas || !lugar) {
                 return res.status(400).json({ error: 'Faltan datos' });
@@ -67,7 +67,7 @@ export default async function RegistroDiarios(req, res) {
 
             const convertirFecha = new Date(fecha);
             let total = parseFloat(horas) * parseFloat(precioLugar)
-            const registroDiario = { fecha:convertirFecha, docEmpleado, horas, lugar, precioLugar, total }
+            const registroDiario = { fecha:convertirFecha, docEmpleado, horas, lugar, precioLugar, total, presentismo, boleto };
             const result = await collect.insertOne(registroDiario);
 
             res.status(201).json({ message: 'Registro diario guardado', id: result.insertedId });

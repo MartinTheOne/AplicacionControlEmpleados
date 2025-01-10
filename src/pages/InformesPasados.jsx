@@ -20,7 +20,6 @@ const InformePasado = () => {
                         const data = await response.json();
                         setInformes(data.informes);
                         localStorage.setItem("informes", JSON.stringify(data.informes));
-                        console.log("Datos recibidos:", data.informes);
                     } else {
                         console.error("Error al obtener los informes de la API");
                     }
@@ -96,7 +95,7 @@ const InformePasado = () => {
             ];
     
             const tableData = registrosOrdenados.map(reg => ({
-                fecha: reg.fecha || "N/A",
+                fecha: new Date(reg.fecha).toISOString().split('T')[0],
                 empleado: reg.empleado?.nombre || "N/A",
                 lugar: reg.lugar?.nombre || "N/A",
                 precioHora: `$${(reg.precioLugar || 0).toLocaleString()}`,
@@ -132,25 +131,30 @@ const InformePasado = () => {
     
             // Agregar resumen por empleado
             const resumenPorEmpleado = registrosOrdenados.reduce((acc, reg) => {
-                const key = reg.empleado?.nombre || "Empleado Desconocido";
+                const key = reg.empleado.nombre;
                 if (!acc[key]) {
                     acc[key] = {
                         horas: 0,
-                        total: 0
+                        total: 0,
+                        presentismo: "",
+                        boleto: ""
                     };
                 }
-                acc[key].horas += reg.horas || 0;
-                acc[key].total += reg.total || 0;
+                acc[key].horas += reg.horas;
+                acc[key].total += reg.total;
+                acc[key].presentismo = reg.presentismo == " " ? "" : reg.presentismo;
+                acc[key].boleto = reg.boleto == " " ? "" : reg.boleto;
                 return acc;
             }, {});
-    
+
+
             // Agregar resumen por empleado al PDF
             doc.setFontSize(14);
             doc.text("Resumen por Empleado", 20, finalY + 20);
             doc.setFontSize(10);
             let yPos = finalY + 30;
             Object.entries(resumenPorEmpleado).forEach(([empleado, datos]) => {
-                doc.text(`${empleado}: ${datos.horas}hs - $${datos.total.toLocaleString()}`, 20, yPos);
+                doc.text(`${empleado}: (${datos.horas}hs - $${datos.total.toLocaleString()}) - Presentismo: ${datos.presentismo} -  Boleto interUrbano: ${datos.boleto}`, 20, yPos);
                 yPos += 7;
             });
     

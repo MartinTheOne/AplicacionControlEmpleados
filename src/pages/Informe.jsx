@@ -16,8 +16,11 @@ const Informe = () => {
     };
 
     const GenerarInforme = async () => {
+
+
         const fechahoy = new Date().toISOString().split('T')[0];
-        if (!fechaFin || !fechaIni || fechaIni > fechaFin || fechaFin > fechahoy || !isValidDate(fechaIni) || !isValidDate(fechaFin)) return;
+        if (!fechaFin || !fechaIni || fechaIni > fechaFin || fechaFin > fechahoy || !isValidDate(fechaIni) || !isValidDate(fechaFin)) return notyf.error("Ingrese fechas válidas");
+
         setIsDisabled(true);
         setLoading(true);
         try {
@@ -84,9 +87,9 @@ const Informe = () => {
                 { header: 'Lugar', dataKey: 'lugar' },
                 { header: 'Precio/Hora', dataKey: 'precioHora' },
                 { header: 'Horas', dataKey: 'horas' },
-                { header: 'Total', dataKey: 'total' }
+                { header: 'Total', dataKey: 'total' },
             ];
-            
+
             const tableData = registrosOrdenados.map(registro => ({
                 fecha: new Date(registro.fecha).toISOString().split('T')[0],
                 empleado: registro.empleado.nombre,
@@ -128,11 +131,15 @@ const Informe = () => {
                 if (!acc[key]) {
                     acc[key] = {
                         horas: 0,
-                        total: 0
+                        total: 0,
+                        presentismo: "",
+                        boleto: ""
                     };
                 }
                 acc[key].horas += reg.horas;
                 acc[key].total += reg.total;
+                acc[key].presentismo = reg.presentismo == " " ? "" : reg.presentismo;
+                acc[key].boleto = reg.boleto == " " ? "" : reg.boleto;
                 return acc;
             }, {});
 
@@ -142,7 +149,7 @@ const Informe = () => {
             doc.setFontSize(10);
             let yPos = finalY + 30;
             Object.entries(resumenPorEmpleado).forEach(([empleado, datos]) => {
-                doc.text(`${empleado}: ${datos.horas}hs - $${datos.total.toLocaleString()}`, 20, yPos);
+                doc.text(`${empleado}: (${datos.horas}hs - $${datos.total.toLocaleString()}) - Presentismo: ${datos.presentismo} -  Boleto interUrbano: ${datos.boleto}`, 20, yPos);
                 yPos += 7;
             });
             

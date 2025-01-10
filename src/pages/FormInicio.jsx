@@ -7,6 +7,8 @@ const FormInicio = () => {
   const [lugares, setLugares] = useState([])
   const [horas, setHoras] = useState("")
   const [lugar, setLugar] = useState("")
+  const [presentismo, setPresentismo] = useState("")
+  const [boleto, setBoleto] = useState("")
   const [isDisabled, setIsDisabled] = useState(false)
 
   useEffect(() => {
@@ -58,7 +60,25 @@ const FormInicio = () => {
 
 
   const guardarRegistro = async () => {
-    if (!SelectEmpl || !horas || !lugar || !fecha) return;
+    if (!SelectEmpl || !horas || !lugar || !fecha) return notyf.error("Complete los campos requeridos");
+
+    const fechaHoy = new Date(`${fecha}T00:00:00`);
+    const ultimoDiaDelMesActual = new Date(
+      fechaHoy.getFullYear(),
+      fechaHoy.getMonth() + 1, 
+      0 
+    );
+
+    let ponerDatos= false;
+    if (!(new Date(fechaHoy).toDateString() === ultimoDiaDelMesActual.toDateString()) && (presentismo || boleto)) {
+     return notyf.error("Solo se puede cargar presentismo o boleto en el último día del mes");
+    }
+    else if ((new Date(fechaHoy).toDateString() === ultimoDiaDelMesActual.toDateString()) && (presentismo && boleto)) {
+      ponerDatos= true;
+    }
+
+
+
     try {
       setIsDisabled(true);
       const GuardarReg = await fetch("/api/RegistrosDiarios", {
@@ -69,7 +89,10 @@ const FormInicio = () => {
           docEmpleado: SelectEmpl.documento,
           horas: parseFloat(horas),
           lugar: lugar.nombre,
-          precioLugar: parseFloat(lugar.precio)
+          precioLugar: parseFloat(lugar.precio),
+          presentismo: ponerDatos?presentismo:" ",
+          boleto: ponerDatos?boleto:" ",
+
         }),
       });
 
@@ -93,7 +116,7 @@ const FormInicio = () => {
       <div className="m-4 mt-[50px]">
         <h2 className="text-[30px] text-center">CONTROL DE EMPLEADOS DIARIO</h2>
       </div>
-      <div className="flex flex-col items-center gap-4 bg-slate-300 h-[530px] w-[330px] rounded-xl p-4 text-[15px]">
+      <div className="flex flex-col items-center gap-4 bg-slate-300 h-[700px] w-[330px] rounded-xl p-4 text-[15px]">
         <div className="flex justify-center w-full m-5">
           <select
             defaultValue=""
@@ -158,6 +181,32 @@ const FormInicio = () => {
             onChange={(e) => setFecha(e.target.value)}
           />
         </div>
+
+        <div className="flex flex-col items-center w-full mt-3">
+          <p className="mb-2">Presentimo</p>
+          <select className="border rounded-md p-2 w-[220px] " 
+          defaultValue=""
+          onChange={(e)=> setPresentismo(e.target.value)} >
+            <option value="" disabled>
+              Seleccione una opción
+            </option>
+            <option value="Si">Si</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+
+        <div className="w-[300px] flex flex-col items-center mt-3">
+          <p className="mb-2">Boleto interurbano</p>
+          <input
+            className="rounded-md p-2 w-[220px]"
+            type="number"
+            placeholder="Cantidad de boletos..."
+            value={boleto}
+            onChange={(e) => setBoleto(e.target.value)}
+          />
+        </div>
+
+
 
         <div className="flex justify-center mt-5">
           <button className="border border-white  py-2 px-4 rounded-xl hover:bg-white duration-300 hover:scale-105"

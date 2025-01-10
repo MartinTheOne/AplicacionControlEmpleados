@@ -9,7 +9,7 @@ const Lugares = () => {
     const [isDisabled, setIsDisabled] = useState(false);
 
     const GuardarLugar=async()=>{
-        if(!nombre||parseFloat(precio)<0||!direccion)return;
+        if(!nombre||parseFloat(precio)<0||!direccion)return notyf.error("Complete todos los campos!!");
 
         try {
              setIsDisabled(true)

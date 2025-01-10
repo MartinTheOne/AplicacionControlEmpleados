@@ -7,7 +7,7 @@ const Empleados = () => {
   const [isDisabled, setIsDisabled] = useState(false); 
 
   const GuardarDatos = async () => {
-    if (!nombre || !documento) return;
+    if (!nombre || !documento) return notyf.error("Complete todos los campos!!");
 
     try {
       setIsDisabled(true);
