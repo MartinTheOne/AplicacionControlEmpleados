@@ -41,6 +41,9 @@ export default async function RegistroDiarios(req, res) {
                 }
 
             })
+            if(!RegistrosDetallados.length>0){
+                return res.status(404).json({ error: 'No se encontraron registros diarios' });
+            }
             let fechaHoy=new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" })
             const informe = {
                 fechaInforme: fechaHoy,

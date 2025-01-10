@@ -28,10 +28,12 @@ const Informe = () => {
             if (response.ok) {
                 const data = await response.json();
                 setRegistroDiario(data.RegistrosDiarios);
-                console.log("Datos recibidos:", data.RegistrosDiarios);
                 notyf.success("Informe generado con exito!!");
                 localStorage.removeItem("informes");
-            } else {
+            } else if(response.status == 404){
+                notyf.error("No se encontraron registros diarios");
+            }
+            else{
                 notyf.error("Error al obtener los registros");
                 console.error("Error al obtener los registros de la API");
             }
