@@ -19,11 +19,11 @@ export default async function Login(req, res) {
         const userExists = await collect.findOne({ user });
         if (userExists && await bcrypt.compare(password, userExists.password)) {
 
-            const token= jwt.sign({ user: userExists.user }, SECRET , {
+            const token= jwt.sign({ user: userExists._id }, SECRET , {
                 expiresIn: '24h'
             });
 
-            return res.status(200).json({ message: 'User logged in',token });
+            return res.status(200).json({token });
         }
 
         res.status(400).json({ message: 'Invalid credentials' });

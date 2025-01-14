@@ -1,5 +1,5 @@
 import { connectToDatabase } from './db';
-
+import { ObjectId } from 'mongodb';
 export default async function Empleados(req, res) {
   try {
     const client = await connectToDatabase();
@@ -9,7 +9,8 @@ export default async function Empleados(req, res) {
 
     if (req.method == "GET") {
       try {
-        const Empleados = await collect.find().toArray();
+        const {supervisorId}=req.query;
+        const Empleados = await collect.find({supervisorId:supervisorId}).toArray();
         res.status(200).json({ Empleados });
       } catch (error) {
         console.error('Error al traer empleados:', error);
@@ -20,18 +21,18 @@ export default async function Empleados(req, res) {
 
     else if (req.method == "POST") {
       try {
-        const { documento, nombre } = req.body;
+        const { documento, nombre,supervisorId } = req.body;
         
-        if (!nombre || !documento) {
+        if (!nombre || !documento || !supervisorId) {
           return res.status(400).json({ error: "Faltan llenar campos" });
         }
       
-        const empleadoExiste = await collect.findOne({ documento });
+        const empleadoExiste = await collect.findOne({ documento,supervisorId });
         if (empleadoExiste) {
           return res.status(400).json({ error: 'Empleado con este documento ya existe' });
         }
       
-        const nuevoEmpleado = { documento, nombre };
+        const nuevoEmpleado = { documento, nombre,supervisorId };
         const resul = await collect.insertOne(nuevoEmpleado);
       
         return res.status(201).json({
@@ -44,26 +45,25 @@ export default async function Empleados(req, res) {
       }      
     }
 
-    else if (req.method == "PUT") {
-      try {
-        const empleados = collect.find().toArray();
-        res.status(200).json({ empleados });
-      } catch (error) {
-        console.error('Error al traer empleados:', error);
-        res.status(500).json({ error: 'Error al traer empleados' });
-      }
-
-    }
-
     else if (req.method == "DELETE") {
       try {
-        const empleados = collect.find().toArray();
-        res.status(200).json({ empleados });
+        const { empleadoId } = req.query; // Asegúrate de obtener correctamente el ID del query
+        if (!empleadoId) {
+          return res.status(400).json({ error: "No hay id de empleado" });
+        }
+        const id=ObjectId.createFromHexString(empleadoId)
+   
+        const BorrarEmpleado = await collect.deleteOne({ _id: id });
+    
+        if (BorrarEmpleado.deletedCount) {
+          return res.status(200).json({ message: "Empleado eliminado" });
+        } else {
+          return res.status(400).json({ message: "No se pudo eliminar al empleado" });
+        }
       } catch (error) {
-        console.error('Error al traer empleados:', error);
-        res.status(500).json({ error: 'Error al traer empleados' });
+        console.error("Error al borrar empleado:", error);
+        res.status(500).json({ error: "Error al borrar empleado" });
       }
-
     }
 
 

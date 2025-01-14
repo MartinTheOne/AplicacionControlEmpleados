@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Menu, Users, MapPin, ScrollText, X, Joystick } from 'lucide-react';
+import { Menu, Users, MapPin, ScrollText, X, Joystick, Key } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const SideBar = ({ setComponent }) => {
+const SideBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activate, setActivate] = useState('')
 
   const menuItems = [
-    { icon: <Users className="w-6 h-6" />, label: 'Empleados' },
-    { icon: <MapPin className="w-6 h-6" />, label: 'Lugares' },
-    { icon: <ScrollText className="w-6 h-6" />, label: 'Informe' },
-    { icon: <ScrollText className="w-6 h-6" />, label: 'Informes Pasados' },
-    { icon: <Joystick className="w-6 h-6" />, label: 'Control Empleados' }
+    { icon: <Users className="w-6 h-6" />, label: 'Empleados', link: "/empleados" },
+    { icon: <MapPin className="w-6 h-6" />, label: 'Lugares', link: "/lugares" },
+    { icon: <ScrollText className="w-6 h-6" />, label: 'Informe', link: "/informe" },
+    { icon: <ScrollText className="w-6 h-6" />, label: 'Informes Pasados', link: "/informesPasados" },
+    { icon: <Joystick className="w-6 h-6" />, label: 'Control Empleados', link: "/controlEmpleados" }
   ];
+  
 
   return (
     <>
@@ -34,24 +36,27 @@ const SideBar = ({ setComponent }) => {
         transform transition-transform duration-300 ease-in-out font-mono
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex flex-col p-4 space-y-4 mt-10">
+        <div className="flex flex-col  p-4 space-y-4 mt-[50px]">
           {menuItems.map((item, index) => (
-            <button
-              key={index}
-              className={`flex items-center font-mono space-x-2 p-2 hover:bg-gray-100 ${activate == item.label ? "bg-gray-100" : ""}  rounded-md `}
-              onClick={() => { setActivate(item.label); setComponent(item.label); setIsOpen(false) }}
+            <Link to={item.link} key={index}
+            className={`flex items-center font-mono space-x-2 p-2 hover:bg-gray-100 ${activate == item.label ? "bg-gray-100" : ""}  rounded-md `}
+            onClick={() => { setActivate(item.label); setIsOpen(false) }}
             >
               {item.icon}
               <span>{item.label}</span>
-            </button>
+            </Link>
+
           ))}
 
         </div>
         <div className='flex justify-center items-center mt-16'>
 
           <button className=' items-center font-mono space-x-2 p-2 bg-red-600  rounded-md text-white hover:bg-red-700 hover:scale-105 transition-transform duration-300 '
-          onClick={() => {localStorage.removeItem('token'); window.location.reload()}}
+            onClick={() => { localStorage.removeItem('token'); window.location.reload() }}
           > Cerrar Sesion</button>
+        </div>
+        <div className='flex items-center justify-center mt-[180px]'>
+          <p className='text-[10px]'>Hecho por -martin-</p>
         </div>
       </div>
     </>

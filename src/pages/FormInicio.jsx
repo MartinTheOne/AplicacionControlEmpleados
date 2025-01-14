@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import notyf from "../notificacion/notify";
+import { jwtDecode } from "jwt-decode";
+
 const FormInicio = () => {
   const [SelectEmpl, setSelectEmple] = useState("");
   const [fecha, setFecha] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }));
@@ -10,6 +12,10 @@ const FormInicio = () => {
   const [presentismo, setPresentismo] = useState("")
   const [boleto, setBoleto] = useState("")
   const [isDisabled, setIsDisabled] = useState(false)
+
+  const token=localStorage.getItem("token");  
+  const decodetoken= token? jwtDecode(token):null;
+  const supervisorId=decodetoken?.user;
 
   useEffect(() => {
     const obtenerEmpleados = async () => {
@@ -35,7 +41,6 @@ const FormInicio = () => {
 
     const obtenerLugares = async () => {
       const lugaresGuardados = localStorage.getItem("lugares");
-
       if (lugaresGuardados) {
         setLugares(JSON.parse(lugaresGuardados));
       } else {
@@ -43,9 +48,9 @@ const FormInicio = () => {
           const response = await fetch("/api/Lugares");
           if (response.ok) {
             const data = await response.json();
-            setLugares(data.lugares);
-            console.log(data.lugares)
-            localStorage.setItem("lugares", JSON.stringify(data.lugares));
+            setLugares(data.Lugares);
+            console.log(data.Lugares)
+            localStorage.setItem("lugares", JSON.stringify(data.Lugares));
           } else {
             console.error("Error al obtener los lugares de la API");
           }
@@ -78,7 +83,6 @@ const FormInicio = () => {
     }
 
 
-
     try {
       setIsDisabled(true);
       const GuardarReg = await fetch("/api/RegistrosDiarios", {
@@ -92,7 +96,7 @@ const FormInicio = () => {
           precioLugar: parseFloat(lugar.precio),
           presentismo: ponerDatos?presentismo:" ",
           boleto: ponerDatos?boleto:" ",
-
+          supervisorId:supervisorId
         }),
       });
 
@@ -112,7 +116,7 @@ const FormInicio = () => {
   }
 
   return (
-    <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono">
+    <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono bg-gray-100">
       <div className="m-4 mt-[50px]">
         <h2 className="text-[30px] text-center">CONTROL DE EMPLEADOS DIARIO</h2>
       </div>

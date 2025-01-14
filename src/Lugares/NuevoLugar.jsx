@@ -1,12 +1,17 @@
 import { useState } from "react";
 import notyf from "../notificacion/notify";
+import { jwtDecode } from "jwt-decode";
 
 
-const Lugares = () => {
+const NuevoLugar = () => {
     const [precio, setPrecio] = useState('')
     const [nombre, setNombre] = useState('')
     const [direccion, setDireccion] = useState('')
     const [isDisabled, setIsDisabled] = useState(false);
+
+    const token=localStorage.getItem("token");  
+    const decodetoken= token? jwtDecode(token):null;
+    const supervisorId=decodetoken?.user;
 
     const GuardarLugar=async()=>{
         if(!nombre||parseFloat(precio)<0||!direccion)return notyf.error("Complete todos los campos!!");
@@ -19,13 +24,17 @@ const Lugares = () => {
             body: JSON.stringify({
                 precio:precio,
                 nombre:nombre,
-                direccion:direccion
+                direccion:direccion,
+                supervisorId:supervisorId
               }),
         })
 
         if(resul.status==201){
             notyf.success("Guardado con exito!!")
             localStorage.removeItem("lugares");
+            setDireccion("")
+            setNombre("")
+            setPrecio("")
         }
         else if(resul.status==400) notyf.error("El lugar ya existe!!")
         
@@ -38,11 +47,8 @@ const Lugares = () => {
        
     }
     return (
-        <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono">
-            <div className="m-4 mt-[50px]" >
-                <h2 className="text-[30px] text-center">AGREGAR LUGARES DE TRABAJO</h2>
-            </div>
-            <div className="flex flex-col items-center gap-4 bg-slate-300 h-[500px] w-[330px] rounded-xl p-4 text-[15px]">
+        <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono bg-gray-100">
+            <div className="flex flex-col items-center gap-4 bg-slate-300 h-[450px] w-[330px] rounded-xl p-4 text-[15px]">
 
                 <div className="w-[300px] flex flex-col items-center mt-5">
                     <div className="w-full text-center">
@@ -96,4 +102,4 @@ const Lugares = () => {
         </div>
     )
 }
-export default Lugares;
+export default NuevoLugar;

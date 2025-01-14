@@ -3,10 +3,16 @@ import { Trash2 } from "lucide-react";
 import notyf from "../notificacion/notify";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { jwtDecode } from "jwt-decode";
 
 const InformePasado = () => {
 
     const [informes, setInformes] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    const token=localStorage.getItem("token");
+    const decodeToken=token?jwtDecode(token):null;
+    const supervisorId=decodeToken?.user;
 
     useEffect(() => {
         const obtenerInformes = async () => {
@@ -14,8 +20,9 @@ const InformePasado = () => {
             if (traerInforme) {
                 setInformes(JSON.parse(traerInforme));
             } else {
+                setLoading(true)
                 try {
-                    const response = await fetch("/api/Informe");
+                    const response = await fetch(`/api/Informe?supervisorId=${supervisorId}`);
                     if (response.ok) {
                         const data = await response.json();
                         setInformes(data.informes);
@@ -25,6 +32,9 @@ const InformePasado = () => {
                     }
                 } catch (error) {
                     console.error("Error al conectar con la API:", error);
+                }
+                finally{
+                    setLoading(false)
                 }
             }
         }
@@ -233,15 +243,29 @@ const InformePasado = () => {
 
                                 </tbody>
                             </table>}
-                            {!(paginatedRows.length>0)&& <div className="flex justify-center items-center h-[300px]"> <h2 className="text-2xl text-gray-500">No hay informes para mostrar</h2></div>}
+                        {loading && (
+                            <div className="flex flex-col items-center justify-center">
+                                <p className="text-20px">Cargando Informes...</p>
+                                <img
+                                    src="/loanding.svg"
+                                    alt="Cargando"
+                                    className="animate-spin"
+                                    style={{
+                                        width: '50px',
+                                        height: '50px',
+                                    }}
+                                />
+                            </div>
+                        )}
+                        {!loading && (!(paginatedRows.length > 0) && <div className="flex justify-center items-center h-[300px]"> <h2 className="text-2xl text-gray-500">No hay informes para mostrar</h2></div>)}
                         {totalPages > 1 && (
                             <div className="flex justify-center items-center mt-4">
                                 {Array.from({ length: totalPages }, (_, index) => (
                                     <button
                                         key={index}
                                         className={`mx-1 px-3 py-1 text-sm ${currentPage === index + 1
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-gray-200 text-gray-700"
+                                            ? "bg-blue-500 text-white"
+                                            : "bg-gray-200 text-gray-700"
                                             } rounded`}
                                         onClick={() => handlePageChange(index + 1)}
                                     >

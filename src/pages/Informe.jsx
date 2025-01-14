@@ -2,6 +2,7 @@ import { useState } from "react";
 import notyf from "../notificacion/notify";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { jwtDecode } from "jwt-decode";
 
 const Informe = () => {
     const [loading, setLoading] = useState(false);
@@ -9,6 +10,10 @@ const Informe = () => {
     const [fechaFin, setFechaFin] = useState('');
     const [registroDiario, setRegistroDiario] = useState([]);
     const [isDisabled, setIsDisabled] = useState(false);
+
+    const token=localStorage.getItem("token");    
+    const decodetoken= token? jwtDecode(token):null;
+    const supervisorId=decodetoken?.user;
 
     const isValidDate = (date) => {
         const parsedDate = new Date(date);
@@ -24,7 +29,7 @@ const Informe = () => {
         setIsDisabled(true);
         setLoading(true);
         try {
-            const response = await fetch(`/api/RegistrosDiarios?fechaIni=${fechaIni}&fechaFin=${fechaFin}`);
+            const response = await fetch(`/api/RegistrosDiarios?fechaIni=${fechaIni}&fechaFin=${fechaFin}&supervisorId=${supervisorId}`);
             if (response.ok) {
                 const data = await response.json();
                 setRegistroDiario(data.RegistrosDiarios);
@@ -173,7 +178,7 @@ const Informe = () => {
     };
 
     return (
-        <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono">
+        <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono bg-gray-100">
             <div className="m-4 mt-[50px]">
                 <h2 className="text-[30px] text-center">INFORME</h2>
             </div>

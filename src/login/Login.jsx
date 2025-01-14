@@ -1,32 +1,60 @@
 import React, { useState } from 'react';
 import notyf from '../notificacion/notify';
+import { useNavigate } from "react-router-dom";
+import ValidadToken from '../utils/validadToken';
+import { useEffect } from 'react';
 
-export default function Login({ onLoginSuccess }) {
+export default function Login() {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+  const [disabled,setDisabled]=useState(false)
+  const navigate=useNavigate()
+  const token=localStorage.getItem("token")
+ 
+   useEffect(() => {
+     if (token && ValidadToken(token)) {
+       navigate('/inicio');
+     }
+   }, []);
+   
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Previene el comportamiento predeterminado
+    event.preventDefault(); 
     if (!user || !password) {
-      alert('Completa todos los campos');
-      return;
+      return notyf.error("complete todos los campos");
     }
-    const response = await fetch('/api/Login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ user, password }),
-    });
-    const data = await response.json();
+    setDisabled(true)
 
-    if (data.message === 'User logged in') {
-      localStorage.setItem('token', data.token);
-      notyf.success('Inicio de sesión exitoso');
-      onLoginSuccess();
-    } else {
-      notyf.error('Usuario o contraseña incorrectos');
+    try {
+      const response = await fetch('/api/Login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user, password }),
+      });
+      const data = await response.json();
+  
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        notyf.success('Inicio de sesión exitoso');
+        localStorage.removeItem("lugares");
+        localStorage.removeItem("empleados");
+        localStorage.removeItem("informes");
+        navigate("/inicio")
+      } else {
+        notyf.error('Usuario o contraseña incorrectos');
+      }
+    } catch (error) {
+      console.log(error)
     }
+    finally{
+      setTimeout(() => {
+        setDisabled(false)
+      }, 2000);
+    }
+   
+    
   };
 
   return (
@@ -60,6 +88,7 @@ export default function Login({ onLoginSuccess }) {
             <button
               type="submit"
               className="w-full px-2 py-2 transition-transform duration-300 hover:scale-105 text-white hover:bg-blue-700 bg-blue-500 rounded-lg"
+              disabled={disabled}
             >
               Entrar
             </button>
