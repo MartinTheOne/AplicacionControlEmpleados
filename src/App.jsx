@@ -9,9 +9,7 @@ import Informe from './pages/Informe';
 import InformePasado from './pages/InformesPasados';
 import FormInicio from './pages/FormInicio';
 import Inicio from './pages/Inicio';
-import Modal from "react-modal";
 
-Modal.setAppElement("#root");
 
 function App() {
   const token = localStorage.getItem('token');

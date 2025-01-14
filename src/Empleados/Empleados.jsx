@@ -68,20 +68,25 @@ const Empleados = () => {
     setEmpleadoSeleccionado(null)
   }
 
-  const notificacionEliminacion=(notif)=>{
-    if(notif==200){
-      setEmpleados([])
-      localStorage.removeItem("empleados")
+  const notificacionEliminacion = (notif) => {
+    if (notif === 200) {
+      setEmpleados((prevEmpleados) =>
+        prevEmpleados.filter((empleado) => empleado._id !== empleadoSeleccionado._id)
+      );
+      localStorage.setItem(
+        "empleados",
+        JSON.stringify(
+          empleados.filter((empleado) => empleado._id !== empleadoSeleccionado._id)
+        )
+      );
       setEmpleadoSeleccionado(null);
-      notyf.success("Empleado eliminado con exito")
-    }
-    else{
-      notyf.error("No se puedo eliminar el empleado")
+      notyf.success("Empleado eliminado con éxito");
+    } else {
+      notyf.error("No se pudo eliminar el empleado");
       setEmpleadoSeleccionado(null);
     }
-   
-  }
-
+  };
+  
 
   return (
     <div className="h-[900px] bg-gray-100 ">
