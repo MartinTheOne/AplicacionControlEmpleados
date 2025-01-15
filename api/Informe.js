@@ -1,4 +1,6 @@
+
 import { connectToDatabase } from "./db";
+import { ObjectId } from "mongodb";
 
 export default async function Informe(req, res) {
     const client = await connectToDatabase();
@@ -21,7 +23,29 @@ export default async function Informe(req, res) {
             console.error('Error al traer informes:', error);
             res.status(500).json({ error: 'Error al traer informes' });
         }
-    } else {
+    }
+    else if(req.method==="DELETE"){
+        try {
+            const {informeId}=req.query;
+
+            if(!informeId)return res.status(400).json({error:"faltan datos"})
+
+            const id= ObjectId.createFromHexString(informeId);
+            const buscarInforme= await collect.deleteOne({_id:id})
+
+            if(buscarInforme.deletedCount){
+                return res.status(200).json({message:"Informe borrado con exito"})
+            }
+            else{
+                return res.status(400).json({message:"no se pudo borrar el informe"})
+            }                  
+        } catch (error) {
+            console.error('Error al traer informes:', error);
+            res.status(500).json({ error: 'Error al borrar informes' });
+        }
+    }
+    
+    else {
         res.status(405).json({ error: "Método no permitido" });
     }
 }

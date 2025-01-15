@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 const NuevoEmpleado = () => {
   const [nombre, setNombre] = useState("");
   const [documento, setDocumento] = useState("");
+  const [alias, setAlias] = useState("");
   const [isDisabled, setIsDisabled] = useState(false); 
 
   const token=localStorage.getItem("token");
@@ -11,7 +12,7 @@ const NuevoEmpleado = () => {
   const supervisorId=decodetoken?.user;
 
   const GuardarDatos = async () => {
-    if (!nombre || !documento) return notyf.error("Complete todos los campos!!");
+    if (!nombre || !documento || !alias) return notyf.error("Complete todos los campos!!");
 
     if(!(documento.length==8))return notyf.error("El documento debe tener 8 digitos")
 
@@ -27,6 +28,7 @@ const NuevoEmpleado = () => {
         body: JSON.stringify({
           documento: documento,
           nombre: nombre,
+          alias:alias,
           supervisorId:supervisorId
         }),
       });
@@ -35,6 +37,7 @@ const NuevoEmpleado = () => {
         notyf.success("Guardado con éxito!!");
         setDocumento("")
         setNombre("")
+        setAlias("")
         localStorage.removeItem("empleados");
       } else if (Guardar.status == 400) {
         notyf.error("El empleado ya existe!!");
@@ -45,7 +48,7 @@ const NuevoEmpleado = () => {
     }
      setTimeout(() => {
       setIsDisabled(false);
-    }, 5000);
+    }, 2000);
   };
 
   return (
@@ -76,20 +79,23 @@ const NuevoEmpleado = () => {
         </div>
 
         <div className="w-[300px] flex flex-col items-center mt-3">
-          <p className="mb-2">Ingrese la fecha Nac</p>
+          <p className="mb-2">Ingrese el alias</p>
           <input
             className="rounded-md p-2 w-[220px]"
-            type="date"
+            type="text"
+            placeholder="bancario o billetera virt"
+            value={alias}
+            onChange={(e)=>setAlias(e.target.value)}
           />
         </div>
 
         <div className="flex justify-center mt-5">
           <button
-            className="border border-white py-2 px-4 rounded-xl hover:bg-white duration-300 hover:scale-105"
+            className={`border border-white py-2 px-4 rounded-xl ${!isDisabled?'hover:bg-white duration-300 hover:scale-105':'opacity-50 cursor-not-allowed'}`}
             onClick={() => GuardarDatos()}
             disabled={isDisabled} 
           >
-            Guardar
+            {!isDisabled?"Guardar":"Guardando..."}
           </button>
         </div>
       </div>

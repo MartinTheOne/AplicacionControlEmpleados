@@ -4,11 +4,14 @@ import notyf from "../notificacion/notify";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { jwtDecode } from "jwt-decode";
+import ModalBorrarInformePasados from "./Modals/ModalBorrarInformePasados";
 
 const InformePasado = () => {
 
     const [informes, setInformes] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isOpenModalborrar, setIsOpenModalBorrar] = useState(false);
+    const [informeSeleccionado,setInformeSeleccionado]=useState(null)
 
     const token=localStorage.getItem("token");
     const decodeToken=token?jwtDecode(token):null;
@@ -108,7 +111,7 @@ const InformePasado = () => {
                 fecha: new Date(reg.fecha).toISOString().split('T')[0],
                 empleado: reg.empleado?.nombre || "N/A",
                 lugar: reg.lugar?.nombre || "N/A",
-                precioHora: `$${(reg.precioLugar || 0).toLocaleString()}`,
+                precioHora: `$${(reg.lugar.precio || 0).toLocaleString()}`,
                 horas: reg.horas || 0,
                 total: `$${(reg.total || 0).toLocaleString()}`
             }));
@@ -141,7 +144,7 @@ const InformePasado = () => {
 
             // Agregar resumen por empleado
             const resumenPorEmpleado = registrosOrdenados.reduce((acc, reg) => {
-                const key = reg.empleado.nombre;
+                const key = reg.empleado.documento;
                 if (!acc[key]) {
                     acc[key] = {
                         horas: 0,
@@ -152,6 +155,8 @@ const InformePasado = () => {
                 }
                 acc[key].horas += reg.horas;
                 acc[key].total += reg.total;
+                acc[key].nombre = reg.empleado.nombre;
+                acc[key].alias = reg.empleado.alias;
                 acc[key].presentismo = reg.presentismo == " " ? "" : reg.presentismo;
                 acc[key].boleto = reg.boleto == " " ? "" : reg.boleto;
                 return acc;
@@ -161,11 +166,43 @@ const InformePasado = () => {
             // Agregar resumen por empleado al PDF
             doc.setFontSize(14);
             doc.text("Resumen por Empleado", 20, finalY + 20);
-            doc.setFontSize(10);
-            let yPos = finalY + 30;
-            Object.entries(resumenPorEmpleado).forEach(([empleado, datos]) => {
-                doc.text(`${empleado}: (${datos.horas}hs - $${datos.total.toLocaleString()}) - Presentismo: ${datos.presentismo} -  Boleto interUrbano: ${datos.boleto}`, 20, yPos);
-                yPos += 7;
+
+            const resumenColumns = [
+                { header: 'Empleado', dataKey: 'nombre' },
+                { header: 'Alias', dataKey: 'alias' },
+                { header: 'Horas', dataKey: 'horas' },
+                { header: 'Total', dataKey: 'total' },
+                { header: 'Presentismo', dataKey: 'presentismo' },
+                { header: 'Boleto Interurbano', dataKey: 'boleto' }
+            ];
+    
+            const resumenData = Object.values(resumenPorEmpleado).map(datos => ({
+                nombre: datos.nombre,
+                alias:datos.alias,
+                horas: datos.horas,
+                total: `$${datos.total.toLocaleString()}`,
+                presentismo: datos.presentismo || "Sin datos",
+                boleto: datos.boleto || "Sin datos"
+            }));
+    
+            // Generar tabla de resumen
+            doc.autoTable({
+                columns: resumenColumns,
+                body: resumenData,
+                startY: finalY + 25,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [66, 66, 66],
+                    textColor: 255,
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                }
             });
 
             // Agregar pie de página
@@ -185,6 +222,30 @@ const InformePasado = () => {
         }
     };
 
+
+    const abrirModal=(i)=>{
+        setInformeSeleccionado(i);
+        setIsOpenModalBorrar(true);
+    }
+    const cerrarModal=()=>{
+        setIsOpenModalBorrar(false)
+        setInformeSeleccionado(null)
+    }
+
+    const notificacion=(notif)=>{
+        if(notif==200){
+            setInformes((prev)=>{
+              const informesActualizado= prev.filter(i=>i._id!==informeSeleccionado._id)
+              localStorage.setItem("informes",JSON.stringify(informesActualizado))
+              return informesActualizado;
+            })
+            notyf.success("Informe borrado con exito");
+            setInformeSeleccionado(null);
+        }else{
+            setInformeSeleccionado(null);
+            notyf.error("No se pudo borrar el informe");
+        }
+    }
 
 
     return (
@@ -233,6 +294,7 @@ const InformePasado = () => {
                                                 <button
                                                     className="flex items-center text-red-600 hover:text-red-900"
                                                     aria-label="Delete"
+                                                    onClick={()=>abrirModal(i)}
                                                 >
                                                     <Trash2 className="w-4 h-4 mr-1" />
                                                     Delete
@@ -244,7 +306,7 @@ const InformePasado = () => {
                                 </tbody>
                             </table>}
                         {loading && (
-                            <div className="flex flex-col items-center justify-center">
+                            <div className="flex h-[100px] flex-col items-center justify-center">
                                 <p className="text-20px">Cargando Informes...</p>
                                 <img
                                     src="/loanding.svg"
@@ -277,6 +339,7 @@ const InformePasado = () => {
                     </div>
                 </div>
             </div>
+            <ModalBorrarInformePasados isOpen={isOpenModalborrar} onRequestClose={cerrarModal} informe={informeSeleccionado} notificacion={notificacion}/>
         </div>
     );
 };

@@ -1,5 +1,6 @@
+import { error } from 'console';
 import { connectToDatabase } from './db';
-
+import { ObjectId } from 'mongodb';
 export default async function Luagres(req, res) {
   try {
     const client = await connectToDatabase();
@@ -49,22 +50,44 @@ export default async function Luagres(req, res) {
 
     else if(req.method=="PUT"){
       try {
-        const empleados= collect.find().toArray();
-        res.status(200).json({empleados });
+        const {lugarId, ...cambios}=req.body;
+        if(!lugarId)return res.status(400).json({error:"Falta el id del lugar"})
+
+        const id=ObjectId.createFromHexString(lugarId)
+
+        const editar=await collect.updateOne(
+          {_id:id},
+          {$set:cambios}
+        )
+        if(editar.matchedCount===0)return res.status(400).json({error:"lugar no encontrado"});
+
+        res.status(200).json({message:"lugar actualizado con exito!"})
+
       } catch (error) {
-        console.error('Error al traer empleados:', error);
-        res.status(500).json({ error: 'Error al traer empleados' });
+        console.error('Error al editar lugar:', error);
+        res.status(500).json({ error: 'Error al editar lugar' });
       }
      
     }
 
     else if(req.method=="DELETE"){
       try {
-        const empleados= collect.find().toArray();
-        res.status(200).json({empleados });
+        const {lugarId}=req.query;
+        if(!lugarId)return res.status(400).json({message:"faltan datos"});
+
+        const id=ObjectId.createFromHexString(lugarId);
+        const borrar=await collect.deleteOne({_id:id})
+
+        if(borrar.deletedCount){
+          return res.status(200).json({message:"lugar borrado"})
+        }
+        else{ 
+          return res.status(400).json({message:"No se encontro el lugar a borrar"})
+        }
+
       } catch (error) {
-        console.error('Error al traer empleados:', error);
-        res.status(500).json({ error: 'Error al traer empleados' });
+        console.error('Error al traer lugar:', error);
+        res.status(500).json({ error: 'Error al traer lugar' });
       }
      
     }

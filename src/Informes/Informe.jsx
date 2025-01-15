@@ -48,7 +48,7 @@ const Informe = () => {
         }
         setTimeout(() => {
             setIsDisabled(false);
-        }, 5000);
+        }, 2000);
     };
 
     const generarPDF = () => {
@@ -57,7 +57,7 @@ const Informe = () => {
                 notyf.error("No hay datos para generar el PDF");
                 return;
             }
-
+    
             const doc = new jsPDF();
             
             // Configuración de estilos
@@ -96,12 +96,12 @@ const Informe = () => {
                 { header: 'Horas', dataKey: 'horas' },
                 { header: 'Total', dataKey: 'total' },
             ];
-
+    
             const tableData = registrosOrdenados.map(registro => ({
                 fecha: new Date(registro.fecha).toISOString().split('T')[0],
                 empleado: registro.empleado.nombre,
                 lugar: registro.lugar.nombre,
-                precioHora: `$${registro.precioLugar.toLocaleString()}`,
+                precioHora: `$${registro.lugar.precio.toLocaleString()}`,
                 horas: registro.horas,
                 total: `$${registro.total.toLocaleString()}`
             }));
@@ -131,10 +131,10 @@ const Informe = () => {
             doc.setFont("helvetica", "bold");
             doc.text(`Total de Horas: ${totalHoras}`, 20, finalY);
             doc.text(`Monto Total: $${totalMonto.toLocaleString()}`, 20, finalY + 7);
-
-            // Agregar resumen por empleado
+    
+            // Generar resumen por empleado
             const resumenPorEmpleado = registrosOrdenados.reduce((acc, reg) => {
-                const key = reg.empleado.nombre;
+                const key = reg.empleado.documento;
                 if (!acc[key]) {
                     acc[key] = {
                         horas: 0,
@@ -145,19 +145,53 @@ const Informe = () => {
                 }
                 acc[key].horas += reg.horas;
                 acc[key].total += reg.total;
+                acc[key].nombre = reg.empleado.nombre;
+                acc[key].alias = reg.empleado.alias;
                 acc[key].presentismo = reg.presentismo == " " ? "" : reg.presentismo;
                 acc[key].boleto = reg.boleto == " " ? "" : reg.boleto;
                 return acc;
             }, {});
-
-            // Agregar resumen por empleado al PDF
+    
+            // Configurar tabla de resumen por empleado
             doc.setFontSize(14);
             doc.text("Resumen por Empleado", 20, finalY + 20);
-            doc.setFontSize(10);
-            let yPos = finalY + 30;
-            Object.entries(resumenPorEmpleado).forEach(([empleado, datos]) => {
-                doc.text(`${empleado}: (${datos.horas}hs - $${datos.total.toLocaleString()}) - Presentismo: ${datos.presentismo} -  Boleto interUrbano: ${datos.boleto}`, 20, yPos);
-                yPos += 7;
+    
+            const resumenColumns = [
+                { header: 'Empleado', dataKey: 'nombre' },
+                { header: 'Alias', dataKey: 'alias' },
+                { header: 'Horas', dataKey: 'horas' },
+                { header: 'Total', dataKey: 'total' },
+                { header: 'Presentismo', dataKey: 'presentismo' },
+                { header: 'Boleto Interurbano', dataKey: 'boleto' }
+            ];
+    
+            const resumenData = Object.values(resumenPorEmpleado).map(datos => ({
+                nombre: datos.nombre,
+                alias:datos.alias,
+                horas: datos.horas,
+                total: `$${datos.total.toLocaleString()}`,
+                presentismo: datos.presentismo || "Sin datos",
+                boleto: datos.boleto || "Sin datos"
+            }));
+    
+            // Generar tabla de resumen
+            doc.autoTable({
+                columns: resumenColumns,
+                body: resumenData,
+                startY: finalY + 25,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [66, 66, 66],
+                    textColor: 255,
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                }
             });
             
             // Agregar pie de página
@@ -205,11 +239,11 @@ const Informe = () => {
 
                 <div className="flex justify-center mt-5">
                     <button
-                        className="border border-white py-2 px-4 rounded-xl hover:bg-white duration-300 hover:scale-105"
+                        className={`border border-white py-2 px-4 rounded-xl ${!isDisabled?'hover:bg-white duration-300 hover:scale-105':'opacity-50 cursor-not-allowed'}`}
                         onClick={GenerarInforme}
                         disabled={isDisabled}
                     >
-                        Generar Informe
+                        {!isDisabled?"Generar Informe":"Generando..."}                       
                     </button>
                 </div>
 

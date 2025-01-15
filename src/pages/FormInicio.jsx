@@ -90,10 +90,9 @@ const FormInicio = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fecha: fecha,
-          docEmpleado: SelectEmpl.documento,
+          empleado: SelectEmpl,
           horas: parseFloat(horas),
-          lugar: lugar.nombre,
-          precioLugar: parseFloat(lugar.precio),
+          lugar: lugar,
           presentismo: ponerDatos?presentismo:" ",
           boleto: ponerDatos?boleto:" ",
           supervisorId:supervisorId
@@ -112,7 +111,7 @@ const FormInicio = () => {
     }
     setTimeout(() => {
       setIsDisabled(false);
-    }, 5000);
+    }, 2000);
   }
 
   return (
@@ -213,10 +212,10 @@ const FormInicio = () => {
 
 
         <div className="flex justify-center mt-5">
-          <button className="border border-white  py-2 px-4 rounded-xl hover:bg-white duration-300 hover:scale-105"
+          <button className={`border border-white py-2 px-4 rounded-xl ${!isDisabled?'hover:bg-white duration-300 hover:scale-105':'opacity-50 cursor-not-allowed'}`}
             onClick={() => guardarRegistro()}
             disabled={isDisabled}>
-            Guardar
+            {!isDisabled?"Guardar":"Guardando..."}
           </button>
         </div>
       </div>

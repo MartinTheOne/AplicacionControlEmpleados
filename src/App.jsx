@@ -5,8 +5,8 @@ import ProtectedRoute from './ProtectedRoute';
 import SideBar from './pages/Side_Bar';
 import GestionLugares from './Lugares/GestionLugares';
 import GestionEmpleados from './Empleados/GestionEmpleados';
-import Informe from './pages/Informe';
-import InformePasado from './pages/InformesPasados';
+import Informe from './Informes/Informe';
+import InformePasado from './Informes/InformesPasados';
 import FormInicio from './pages/FormInicio';
 import Inicio from './pages/Inicio';
 

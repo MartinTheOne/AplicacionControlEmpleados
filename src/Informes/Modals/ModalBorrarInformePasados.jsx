@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Modal, Box } from "@mui/material"
 
-const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion }) => {
+const ModalBorrarInformePasados = ({ isOpen,onRequestClose,informe, notificacion }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
-    if (!empleado) return null;
+    if (!informe) return null;
 
     const style = {
         position: 'absolute',
@@ -16,12 +16,12 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
         p: 4,
     };
 
-    const eliminarEmpleado = async () => {
+    const eliminarInforme = async () => {
         if (isDeleting) return;
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`/api/Empleados?empleadoId=${empleado._id}`, {
+            const response = await fetch(`/api/Informe?informeId=${informe._id}`, {
                 method: "DELETE"
             });
 
@@ -36,7 +36,7 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
             }, 100);
 
         } catch (error) {
-            console.error("Error al eliminar empleado:", error);
+            console.error("Error al eliminar informe:", error);
             onRequestClose();
             notificacion(400);
             setIsDeleting(false);
@@ -49,7 +49,7 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
             onClose={onRequestClose}
         >
             <Box sx={style}>
-                <div className="h-[140px] w-[160px] rounded-[10px] font-mono">
+                <div className="h-[170px] w-[160px] rounded-[10px] font-mono">
                     <div className="flex justify-end">
                         <button
                             className="border border-black px-[8px] rounded-[10px] hover:scale-105 transition-transform duration-300"
@@ -60,11 +60,11 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
                         </button>
                     </div>
                     <h3 className="mt-2 mb-4">
-                        ¿Estás seguro de eliminar a <b>{empleado.nombre}</b>?
+                        ¿Estás seguro de eliminar el informe con la fecha <b>{informe.fechaInforme}</b>?
                     </h3>
                     <div className="flex justify-center">
                         <button
-                            onClick={eliminarEmpleado}
+                            onClick={eliminarInforme}
                             disabled={isDeleting}
                             className={`
                             bg-green-600 py-1 px-[20px] mr-4 rounded-[10px] 
@@ -95,4 +95,9 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
     );
 };
 
-export default ModalBorrarEmpleado;
+export default ModalBorrarInformePasados;
+
+
+
+
+

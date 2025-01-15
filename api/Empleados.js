@@ -21,9 +21,9 @@ export default async function Empleados(req, res) {
 
     else if (req.method == "POST") {
       try {
-        const { documento, nombre,supervisorId } = req.body;
+        const { documento, nombre, alias,supervisorId } = req.body;
         
-        if (!nombre || !documento || !supervisorId) {
+        if (!nombre || !documento || !supervisorId || !alias) {
           return res.status(400).json({ error: "Faltan llenar campos" });
         }
       
@@ -32,7 +32,7 @@ export default async function Empleados(req, res) {
           return res.status(400).json({ error: 'Empleado con este documento ya existe' });
         }
       
-        const nuevoEmpleado = { documento, nombre,supervisorId };
+        const nuevoEmpleado = { documento, nombre,alias,supervisorId };
         const resul = await collect.insertOne(nuevoEmpleado);
       
         return res.status(201).json({
@@ -43,6 +43,28 @@ export default async function Empleados(req, res) {
         console.error('Error al agregar empleado:', error);
         res.status(500).json({ error: 'Error al agregar empleado' });
       }      
+    }
+
+    else if(req.method=="PUT"){
+      try {
+        const {empleadoId, alias}=req.body;
+        if(!empleadoId || !alias)return res.status(400).json({error:"Faltam datos"})
+
+        const id=ObjectId.createFromHexString(empleadoId)
+
+        const editar=await collect.updateOne(
+          {_id:id},
+          {$set:{alias:alias}}
+        )
+        if(editar.matchedCount===0)return res.status(400).json({error:"empleado no encontrado"});
+
+        res.status(200).json({message:"Empleado actualizado con exito!"})
+
+      } catch (error) {
+        console.error('Error al editar lugar:', error);
+        res.status(500).json({ error: 'Error al editar Empleado' });
+      }
+     
     }
 
     else if (req.method == "DELETE") {

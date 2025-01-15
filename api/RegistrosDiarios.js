@@ -24,28 +24,10 @@ export default async function RegistroDiarios(req, res) {
                 query.supervisorId = supervisorId;
             }
 
-            const ObetenerRegistrosDiarios = await collect.find(query).toArray();
+            const ObtenerRegistrosDiarios = await collect.find(query).toArray();
 
-            const empleados = await collectEmpleados.find({
-                documento: { $in: ObetenerRegistrosDiarios.map((r) => r.docEmpleado) },
-            }).toArray();
-
-            const lugares = await collectLugares.find({
-                nombre: { $in: ObetenerRegistrosDiarios.map((l) => l.lugar) }
-            }).toArray();
-
-            const RegistrosDetallados = ObetenerRegistrosDiarios.map((r) => {
-                const empleado = empleados.find(e => e.documento == r.docEmpleado);
-                const lugar = lugares.find(l => l.nombre == r.lugar)
-
-                return {
-                    ...r,
-                    empleado,
-                    lugar
-                }
-
-            })
-            if (!RegistrosDetallados.length > 0) {
+        
+            if (!ObtenerRegistrosDiarios.length > 0) {
                 return res.status(404).json({ error: 'No se encontraron registros diarios' });
             }
             let fechaHoy = new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" })
@@ -53,11 +35,11 @@ export default async function RegistroDiarios(req, res) {
                 fechaInforme: fechaHoy,
                 fechaIni: fechaIni,
                 fechaFin: fechaFin,
-                registros: RegistrosDetallados,
+                registros: ObtenerRegistrosDiarios,
             }
             const resul = await collectInformes.insertOne(informe)
             if (resul.insertedId) {
-                return res.status(200).json({ RegistrosDiarios: RegistrosDetallados });
+                return res.status(200).json({ RegistrosDiarios: ObtenerRegistrosDiarios });
             }
         } catch (error) {
             console.error('Error al traer registros diarios:', error);
@@ -66,15 +48,15 @@ export default async function RegistroDiarios(req, res) {
     }
     if (req.method == "POST") {
         try {
-            const { fecha, docEmpleado, horas, lugar, precioLugar, presentismo, boleto, supervisorId } = req.body;
+            const { fecha, empleado, horas, lugar, presentismo, boleto, supervisorId } = req.body;
 
-            if (!fecha || !docEmpleado || !horas || !lugar || !supervisorId) {
+            if (!fecha || !empleado || !horas || !lugar || !supervisorId) {
                 return res.status(400).json({ error: 'Faltan datos' });
             }
 
             const convertirFecha = new Date(fecha);
-            let total = parseFloat(horas) * parseFloat(precioLugar)
-            const registroDiario = { fecha: convertirFecha, docEmpleado, horas, lugar, precioLugar, total, presentismo, boleto, supervisorId };
+            let total = parseFloat(horas) * parseFloat(lugar.precio)
+            const registroDiario = { fecha: convertirFecha, empleado, horas, lugar, total, presentismo, boleto, supervisorId };
             const result = await collect.insertOne(registroDiario);
 
             res.status(201).json({ message: 'Registro diario guardado', id: result.insertedId });

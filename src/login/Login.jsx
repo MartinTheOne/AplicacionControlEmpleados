@@ -87,10 +87,10 @@ export default function Login() {
             </div>
             <button
               type="submit"
-              className="w-full px-2 py-2 transition-transform duration-300 hover:scale-105 text-white hover:bg-blue-700 bg-blue-500 rounded-lg"
+              className={`w-full px-2 py-2 rounded-lg bg-blue-500 ${!disabled?' transition-transform duration-300 hover:scale-105 text-white hover:bg-blue-700  ':'opacity-50 cursor-not-allowed'}`}
               disabled={disabled}
             >
-              Entrar
+              {!disabled?"Entrar":"Entrando..."}
             </button>
           </div>
         </form>

@@ -43,7 +43,7 @@ const NuevoLugar = () => {
         }
         setTimeout(() => {
             setIsDisabled(false)
-        }, 5000);
+        }, 2000);
        
     }
     return (
@@ -92,10 +92,12 @@ const NuevoLugar = () => {
 
 
                 <div className="flex justify-center mt-5">
-                    <button className="border border-white py-2 px-4 rounded-xl hover:bg-white duration-300 hover:scale-105"
+                    <button className={`border border-white py-2 px-4 rounded-xl ${!isDisabled?'hover:bg-white duration-300 hover:scale-105':'opacity-50 cursor-not-allowed'}`}
                     onClick={()=>GuardarLugar()}
                     disabled={isDisabled}>
-                        Guardar
+
+                        {!isDisabled?"Guardar":"Guardando..."}
+                        
                     </button>
                 </div>
             </div>

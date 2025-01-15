@@ -1,49 +1,51 @@
 import { Trash2, Edit } from "lucide-react";
-import { useState ,useEffect} from "react";
+import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import ModalBorrarEmpleado from "./Modals/ModalBorrarEmpleado";
 import notyf from "../notificacion/notify";
+import ModalEditarEmpleados from "./Modals/ModalEditarEmpleados";
 
 
 const Empleados = () => {
-  const TABLE_HEAD = ["Nombre", "Documento", "Acciones"];
+  const TABLE_HEAD = ["Nombre", "Documento", "Alias", "Acciones"];
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false)
-  const [empleados,setEmpleados]=useState([])
-  const [isOpenModal,setIsOpenModal]=useState(false)
-  const [empleadoSeleccionado,setEmpleadoSeleccionado]=useState(null)
+  const [empleados, setEmpleados] = useState([])
+  const [isOpenModalBorrar, setIsOpenModalBorrar] = useState(false)
+  const [isOpenModalEditar, setIsOpenModalEditar] = useState(false)
+  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null)
 
 
-  const token=localStorage.getItem("token");
-  const decodetoken= token? jwtDecode(token):null;
-  const supervisorId=decodetoken?.user;
+  const token = localStorage.getItem("token");
+  const decodetoken = token ? jwtDecode(token) : null;
+  const supervisorId = decodetoken?.user;
 
   useEffect(() => {
-          const obtenerEmpleados = async () => {
-              const traerEmpleados = localStorage.getItem("empleados");
-              if (traerEmpleados) {
-                  setEmpleados(JSON.parse(traerEmpleados));
-              } else {
-                  setLoading(true)
-                  try {
-                      const response = await fetch(`/api/Empleados?supervisorId=${supervisorId}`);
-                      if (response.ok) {
-                          const data = await response.json();
-                          setEmpleados(data.Empleados);
-                          localStorage.setItem("empleados", JSON.stringify(data.Empleados));
-                      } else {
-                          console.error("Error al obtener los empleados de la API");
-                      }
-                  } catch (error) {
-                      console.error("Error al conectar con la API:", error);
-                  }
-                  finally{
-                      setLoading(false)
-                  }
-              }
+    const obtenerEmpleados = async () => {
+      const traerEmpleados = localStorage.getItem("empleados");
+      if (traerEmpleados) {
+        setEmpleados(JSON.parse(traerEmpleados));
+      } else {
+        setLoading(true)
+        try {
+          const response = await fetch(`/api/Empleados?supervisorId=${supervisorId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setEmpleados(data.Empleados);
+            localStorage.setItem("empleados", JSON.stringify(data.Empleados));
+          } else {
+            console.error("Error al obtener los empleados de la API");
           }
-          obtenerEmpleados();
-      }, []);
+        } catch (error) {
+          console.error("Error al conectar con la API:", error);
+        }
+        finally {
+          setLoading(false)
+        }
+      }
+    }
+    obtenerEmpleados();
+  }, []);
 
 
   const itemsPerPage = 5;
@@ -59,12 +61,12 @@ const Empleados = () => {
     currentPage * itemsPerPage
   );
 
-  const abrirModal=async (empl)=>{
-      setEmpleadoSeleccionado(empl)
-      setIsOpenModal(true)    
+  const abrirModalBorrar = async (empl) => {
+    setEmpleadoSeleccionado(empl)
+    setIsOpenModalBorrar(true)
   }
-  const cerrarModal=()=>{
-    setIsOpenModal(false)
+  const cerrarModalBorrar = () => {
+    setIsOpenModalBorrar(false)
     setEmpleadoSeleccionado(null)
   }
 
@@ -86,7 +88,34 @@ const Empleados = () => {
       setEmpleadoSeleccionado(null);
     }
   };
+
+  const abrirModalEditar=(e)=>{
+    setEmpleadoSeleccionado(e)
+    setIsOpenModalEditar(true)
+  }
+
+  const cerrarModalEditar=()=>{
+    setIsOpenModalEditar(false)
+    setEmpleadoSeleccionado(null)
+  }
+
   
+  const notificacionEdicion = (notif,empl) => {
+    if (notif === 200) {
+      setEmpleados((prev)=>{
+        const nuevosEmpleados=prev.map(e=>e._id==empl._id?{...e,...empl}:e)
+        localStorage.setItem("empleados",JSON.stringify(nuevosEmpleados));
+        return nuevosEmpleados;
+      }
+      )     
+      setEmpleadoSeleccionado(null);
+      notyf.success("Empleado editado con éxito");
+    } else {
+      notyf.error("No se pudo editar el empleado");
+      setEmpleadoSeleccionado(null);
+    }
+  };
+
 
   return (
     <div className="h-[900px] bg-gray-100 ">
@@ -119,23 +148,34 @@ const Empleados = () => {
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {i.documento}
                       </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {i.alias}
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap space-x-2 flex">
-                    <button
-                      className="flex items-center text-red-600 hover:text-red-900"
-                      aria-label="Delete"
-                      onClick={()=>abrirModal(i)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Borrar
-                    </button>
-                  </td>
+                        <button
+                          className="flex items-center text-red-600 hover:text-red-900"
+                          aria-label="Delete"
+                          onClick={() => abrirModalBorrar(i)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Borrar
+                        </button>
+                        <button
+                          className="flex items-center text-orange-400 hover:text-orange-600"
+                          aria-label="Editar"
+                          onClick={()=>abrirModalEditar(i)}
+                        >
+                          <Edit className="w-4 h-4 mr-1"/>
+                          Editar
+                        </button>
+                      </td>
                     </tr>
                   ))}
 
                 </tbody>
               </table>}
             {loading && (
-              <div className="flex flex-col items-center justify-center">
+              <div className="flex h-[100px] flex-col items-center justify-center">
                 <p className="text-20px">Cargando Empleados...</p>
                 <img
                   src="/loanding.svg"
@@ -168,7 +208,8 @@ const Empleados = () => {
           </div>
         </div>
       </div>
-      <ModalBorrarEmpleado isOpen={isOpenModal} onRequestClose={cerrarModal} empleado={empleadoSeleccionado} notificacion={notificacionEliminacion}/>
+      <ModalBorrarEmpleado isOpen={isOpenModalBorrar} onRequestClose={cerrarModalBorrar} empleado={empleadoSeleccionado} notificacion={notificacionEliminacion} />
+      <ModalEditarEmpleados isOpen={isOpenModalEditar} onRequestClose={cerrarModalEditar} empleado={empleadoSeleccionado} notificacion={notificacionEdicion}/>
     </div>
   );
 }

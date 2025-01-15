@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Modal, Box } from "@mui/material"
 
-const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion }) => {
+const ModalBorrarLugar = ({ isOpen,onRequestClose, lugar, notificacion }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
-    if (!empleado) return null;
+    if (!lugar) return null;
 
     const style = {
         position: 'absolute',
@@ -21,7 +21,7 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`/api/Empleados?empleadoId=${empleado._id}`, {
+            const response = await fetch(`/api/Lugares?lugarId=${lugar._id}`, {
                 method: "DELETE"
             });
 
@@ -36,7 +36,7 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
             }, 100);
 
         } catch (error) {
-            console.error("Error al eliminar empleado:", error);
+            console.error("Error al eliminar lugar:", error);
             onRequestClose();
             notificacion(400);
             setIsDeleting(false);
@@ -60,7 +60,7 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
                         </button>
                     </div>
                     <h3 className="mt-2 mb-4">
-                        ¿Estás seguro de eliminar a <b>{empleado.nombre}</b>?
+                        ¿Estás seguro de eliminar a <b>{lugar.nombre}</b>?
                     </h3>
                     <div className="flex justify-center">
                         <button
@@ -95,4 +95,4 @@ const ModalBorrarEmpleado = ({ isOpen, onRequestClose, empleado, notificacion })
     );
 };
 
-export default ModalBorrarEmpleado;
+export default ModalBorrarLugar;
