@@ -14,9 +14,7 @@ export default async function Informe(req, res) {
             if (!supervisorId) {
                 return res.status(400).json({ error: 'El campo supervisorId es obligatorio' });
             }
-
-            // Buscar dentro del array "registros" por el supervisorId
-            const informes = await collect.find({ "registros.supervisorId": supervisorId }).toArray();
+            const informes = await collect.find({ "registros.supervisor._id": supervisorId }).toArray();
 
             res.status(200).json({ informes });
         } catch (error) {

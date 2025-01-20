@@ -11,7 +11,7 @@ const NuevoLugar = () => {
 
     const token=localStorage.getItem("token");  
     const decodetoken= token? jwtDecode(token):null;
-    const supervisorId=decodetoken?.user;
+    const supervisor=decodetoken ? decodetoken:null;
 
     const GuardarLugar=async()=>{
         if(!nombre||parseFloat(precio)<0||!direccion)return notyf.error("Complete todos los campos!!");
@@ -25,7 +25,7 @@ const NuevoLugar = () => {
                 precio:precio,
                 nombre:nombre,
                 direccion:direccion,
-                supervisorId:supervisorId
+                supervisor:{nombre:supervisor.nombre,_id:supervisor.user}
               }),
         })
 

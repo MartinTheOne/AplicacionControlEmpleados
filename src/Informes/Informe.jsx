@@ -59,34 +59,34 @@ const Informe = () => {
             }
     
             const doc = new jsPDF();
-            
+    
             // Configuración de estilos
             doc.setFontSize(20);
             doc.setFont("helvetica", "bold");
-            
+    
             // Título
             doc.text("Informe de Registros Diarios", 105, 20, { align: "center" });
-            
+    
             // Información del período
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
             doc.text(`Período: ${fechaIni} al ${fechaFin}`, 20, 35);
-            
+    
             // Calcular totales
             const totalHoras = registroDiario.reduce((sum, reg) => sum + reg.horas, 0);
             const totalMonto = registroDiario.reduce((sum, reg) => sum + reg.total, 0);
-            
+    
             // Ordenar registros por fecha, empleado y lugar
             const registrosOrdenados = [...registroDiario].sort((a, b) => {
                 const fechaComparacion = a.fecha.localeCompare(b.fecha);
                 if (fechaComparacion !== 0) return fechaComparacion;
-                
+    
                 const empleadoComparacion = a.empleado.nombre.localeCompare(b.empleado.nombre);
                 if (empleadoComparacion !== 0) return empleadoComparacion;
-                
+    
                 return a.lugar.nombre.localeCompare(b.lugar.nombre);
             });
-            
+    
             // Crear tabla de registros
             const tableColumns = [
                 { header: 'Fecha', dataKey: 'fecha' },
@@ -94,7 +94,8 @@ const Informe = () => {
                 { header: 'Lugar', dataKey: 'lugar' },
                 { header: 'Precio/Hora', dataKey: 'precioHora' },
                 { header: 'Horas', dataKey: 'horas' },
-                { header: 'Total', dataKey: 'total' },
+                { header: 'Adelanto', dataKey: 'adelanto' },
+                { header: 'Total', dataKey: 'total' },             
             ];
     
             const tableData = registrosOrdenados.map(registro => ({
@@ -103,9 +104,10 @@ const Informe = () => {
                 lugar: registro.lugar.nombre,
                 precioHora: `$${registro.lugar.precio.toLocaleString()}`,
                 horas: registro.horas,
-                total: `$${registro.total.toLocaleString()}`
+                total: `$${(registro.total-registro.adelanto).toLocaleString()}`,
+                adelanto:`$${registro.adelanto.toLocaleString()}`
             }));
-            
+    
             // Generar tabla
             doc.autoTable({
                 columns: tableColumns,
@@ -125,7 +127,7 @@ const Informe = () => {
                     fillColor: [245, 245, 245]
                 }
             });
-            
+    
             // Agregar resumen al final
             const finalY = doc.lastAutoTable.finalY + 15;
             doc.setFont("helvetica", "bold");
@@ -139,12 +141,19 @@ const Informe = () => {
                     acc[key] = {
                         horas: 0,
                         total: 0,
+                        adelanto:0,
+                        horaPromedio:0,
+                        precioLugar:0,
                         presentismo: "",
-                        boleto: ""
+                        boleto: "",
+                        
                     };
                 }
+                acc[key].horaPromedio += 1;
+                acc[key].precioLugar += parseFloat(reg.lugar.precio);
                 acc[key].horas += reg.horas;
-                acc[key].total += reg.total;
+                acc[key].total += parseFloat(reg.total) || 0;
+                acc[key].adelanto += parseFloat(reg.adelanto) || 0;                
                 acc[key].nombre = reg.empleado.nombre;
                 acc[key].alias = reg.empleado.alias;
                 acc[key].presentismo = reg.presentismo == " " ? "" : reg.presentismo;
@@ -152,29 +161,41 @@ const Informe = () => {
                 return acc;
             }, {});
     
-            // Configurar tabla de resumen por empleado
-            doc.setFontSize(14);
-            doc.text("Resumen por Empleado", 20, finalY + 20);
+            // Configurar título centrado para "Resumen por Empleado"
+            doc.setFontSize(20);
+            doc.text("Resumen por Empleado", 105, finalY + 20, { align: "center" });
     
+            // Crear tabla de resumen
             const resumenColumns = [
-                { header: 'Empleado', dataKey: 'nombre' },
+                { header: 'Emp.', dataKey: 'nombre' }, 
                 { header: 'Alias', dataKey: 'alias' },
-                { header: 'Horas', dataKey: 'horas' },
-                { header: 'Total', dataKey: 'total' },
-                { header: 'Presentismo', dataKey: 'presentismo' },
-                { header: 'Boleto Interurbano', dataKey: 'boleto' }
+                { header: 'Hs', dataKey: 'horas' }, 
+                { header: '$/Hs Prom.', dataKey: 'horasPromedio' },           
+                { header: 'Subt.', dataKey: 'subtotal' }, 
+                { header: 'Adel.', dataKey: 'adelanto' }, 
+                { header: 'Total', dataKey: 'total' }, 
+                { header: 'Pres.', dataKey: 'presentismo' },
+                { header: 'Boleto I.U.', dataKey: 'boleto' } 
             ];
     
-            const resumenData = Object.values(resumenPorEmpleado).map(datos => ({
-                nombre: datos.nombre,
-                alias:datos.alias,
-                horas: datos.horas,
-                total: `$${datos.total.toLocaleString()}`,
-                presentismo: datos.presentismo || "Sin datos",
-                boleto: datos.boleto || "Sin datos"
-            }));
+            const resumenData = Object.values(resumenPorEmpleado).map(datos => {
+                const subtotal = parseFloat(datos.total || 0); 
+                const total = subtotal - parseFloat(datos.adelanto || 0);
+                const horaPromedio = parseFloat(datos.precioLugar||0)/parseFloat(datos.horaPromedio);
+            
+                return {
+                    nombre: datos.nombre,
+                    alias: datos.alias,
+                    horas: datos.horas,
+                    horasPromedio: `$${(horaPromedio || 0).toLocaleString()}`,
+                    adelanto: `$${(datos.adelanto || 0).toLocaleString()}`,
+                    subtotal: `$${subtotal.toLocaleString()}`,
+                    total: `$${total.toLocaleString()}`, 
+                    presentismo: datos.presentismo || "Sin datos",
+                    boleto: datos.boleto || "Sin datos"
+                };
+            });
     
-            // Generar tabla de resumen
             doc.autoTable({
                 columns: resumenColumns,
                 body: resumenData,
@@ -193,15 +214,73 @@ const Informe = () => {
                     fillColor: [245, 245, 245]
                 }
             });
-            
+    
+            // Configurar título centrado para "Resumen por Empleado y Lugar"
+            const detalleY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(20);
+            doc.text("Resumen por Empleado y Lugar", 105, detalleY, { align: "center" });
+    
+            // Generar tabla de resumen detallado
+            const resumenDetallado = registrosOrdenados.reduce((acc, reg) => {
+                const empleado = reg.empleado.nombre;
+                const lugar = reg.lugar.nombre;
+                const horas = reg.horas;
+    
+                const key = `${empleado}-${lugar}-${horas}`;
+    
+                if (!acc[key]) {
+                    acc[key] = {
+                        empleado,
+                        lugar,
+                        horasPorDia: horas,
+                        dias: 1,
+                        totalHoras: horas
+                    };
+                } else {
+                    acc[key].dias += 1;
+                    acc[key].totalHoras += horas;
+                }
+    
+                return acc;
+            }, {});
+    
+            const detalleColumns = [
+                { header: 'Empleado', dataKey: 'empleado' },
+                { header: 'Lugar', dataKey: 'lugar' },
+                { header: 'Días', dataKey: 'dias' },
+                { header: 'Horas por día', dataKey: 'horasPorDia' },
+                { header: 'Total Horas', dataKey: 'totalHoras' }
+            ];
+    
+            const detalleData = Object.values(resumenDetallado);
+    
+            doc.autoTable({
+                columns: detalleColumns,
+                body: detalleData,
+                startY: detalleY + 5,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [66, 66, 66],
+                    textColor: 255,
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                }
+            });
+    
             // Agregar pie de página
             const pageCount = doc.internal.getNumberOfPages();
             doc.setFontSize(8);
-            for(let i = 1; i <= pageCount; i++) {
+            for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
             }
-            
+    
             // Guardar PDF
             doc.save(`Informe_${fechaIni}_${fechaFin}.pdf`);
             notyf.success("PDF generado exitosamente!");
@@ -210,6 +289,7 @@ const Informe = () => {
             notyf.error("Error al generar el PDF");
         }
     };
+    
 
     return (
         <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono bg-gray-100">

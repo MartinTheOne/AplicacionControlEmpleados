@@ -21,28 +21,41 @@ const InformePasado = () => {
         const obtenerInformes = async () => {
             const traerInforme = localStorage.getItem("informes");
             if (traerInforme) {
-                setInformes(JSON.parse(traerInforme));
+                const informesOrdenados = JSON.parse(traerInforme).sort((a, b) => {
+                    // Convertir fechas a objetos Date para comparación
+                    const fechaA = new Date(a.fechaInforme);
+                    const fechaB = new Date(b.fechaInforme);
+                    // Ordenar de más reciente a más antigua
+                    return fechaB - fechaA;
+                });
+                setInformes(informesOrdenados);
             } else {
-                setLoading(true)
+                setLoading(true);
                 try {
                     const response = await fetch(`/api/Informe?supervisorId=${supervisorId}`);
                     if (response.ok) {
                         const data = await response.json();
-                        setInformes(data.informes);
-                        localStorage.setItem("informes", JSON.stringify(data.informes));
+                        // Ordenar los informes antes de guardarlos
+                        const informesOrdenados = data.informes.sort((a, b) => {
+                            const fechaA = new Date(a.fechaInforme);
+                            const fechaB = new Date(b.fechaInforme);
+                            return fechaB - fechaA;
+                        });
+                        setInformes(informesOrdenados);
+                        localStorage.setItem("informes", JSON.stringify(informesOrdenados));
                     } else {
                         console.error("Error al obtener los informes de la API");
                     }
                 } catch (error) {
                     console.error("Error al conectar con la API:", error);
-                }
-                finally{
-                    setLoading(false)
+                } finally {
+                    setLoading(false);
                 }
             }
-        }
+        };
         obtenerInformes();
     }, []);
+
 
     const TABLE_HEAD = ["Fecha Informe", "Fecha Inicio", "Fecha Fin", "Descargar", "Borrar"];
 
@@ -69,34 +82,34 @@ const InformePasado = () => {
             const informeElegido = inf;
             const registro = informeElegido.registros;
             const doc = new jsPDF();
-
+    
             // Configuración de estilos
             doc.setFontSize(20);
             doc.setFont("helvetica", "bold");
-
+    
             // Título
             doc.text("Informe de Registros Diarios", 105, 20, { align: "center" });
-
+    
             // Información del período
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
             doc.text(`Período: ${informeElegido.fechaIni} al ${informeElegido.fechaFin}`, 20, 35);
-
+    
             // Calcular totales
             const totalHoras = registro.reduce((sum, reg) => sum + (reg.horas || 0), 0);
             const totalMonto = registro.reduce((sum, reg) => sum + (reg.total || 0), 0);
-
+    
             // Ordenar registros por fecha, empleado y lugar
             const registrosOrdenados = [...registro].sort((a, b) => {
                 const fechaComparacion = (a.fecha || "").localeCompare(b.fecha || "");
                 if (fechaComparacion !== 0) return fechaComparacion;
-
+    
                 const empleadoComparacion = (a.empleado?.nombre || "").localeCompare(b.empleado?.nombre || "");
                 if (empleadoComparacion !== 0) return empleadoComparacion;
-
+    
                 return (a.lugar?.nombre || "").localeCompare(b.lugar?.nombre || "");
             });
-
+    
             // Crear tabla de registros
             const tableColumns = [
                 { header: 'Fecha', dataKey: 'fecha' },
@@ -106,7 +119,7 @@ const InformePasado = () => {
                 { header: 'Horas', dataKey: 'horas' },
                 { header: 'Total', dataKey: 'total' }
             ];
-
+    
             const tableData = registrosOrdenados.map(reg => ({
                 fecha: new Date(reg.fecha).toISOString().split('T')[0],
                 empleado: reg.empleado?.nombre || "N/A",
@@ -115,7 +128,7 @@ const InformePasado = () => {
                 horas: reg.horas || 0,
                 total: `$${(reg.total || 0).toLocaleString()}`
             }));
-
+    
             // Generar tabla
             doc.autoTable({
                 columns: tableColumns,
@@ -135,13 +148,13 @@ const InformePasado = () => {
                     fillColor: [245, 245, 245]
                 }
             });
-
+    
             // Agregar resumen al final
             const finalY = doc.lastAutoTable.finalY + 15;
             doc.setFont("helvetica", "bold");
             doc.text(`Total de Horas: ${totalHoras}`, 20, finalY);
             doc.text(`Monto Total: $${totalMonto.toLocaleString()}`, 20, finalY + 7);
-
+    
             // Agregar resumen por empleado
             const resumenPorEmpleado = registrosOrdenados.reduce((acc, reg) => {
                 const key = reg.empleado.documento;
@@ -161,12 +174,11 @@ const InformePasado = () => {
                 acc[key].boleto = reg.boleto == " " ? "" : reg.boleto;
                 return acc;
             }, {});
-
-
+    
             // Agregar resumen por empleado al PDF
-            doc.setFontSize(14);
-            doc.text("Resumen por Empleado", 20, finalY + 20);
-
+            doc.setFontSize(20);
+            doc.text("Resumen por Empleado", 105, finalY + 20, { align: "center" });
+    
             const resumenColumns = [
                 { header: 'Empleado', dataKey: 'nombre' },
                 { header: 'Alias', dataKey: 'alias' },
@@ -178,7 +190,7 @@ const InformePasado = () => {
     
             const resumenData = Object.values(resumenPorEmpleado).map(datos => ({
                 nombre: datos.nombre,
-                alias:datos.alias,
+                alias: datos.alias,
                 horas: datos.horas,
                 total: `$${datos.total.toLocaleString()}`,
                 presentismo: datos.presentismo || "Sin datos",
@@ -204,7 +216,68 @@ const InformePasado = () => {
                     fillColor: [245, 245, 245]
                 }
             });
-
+    
+            // Nueva sección: Resumen por empleado, lugar y horas
+            const resumenDetallado = registrosOrdenados.reduce((acc, reg) => {
+                const empleado = reg.empleado.nombre;
+                const lugar = reg.lugar.nombre;
+                const horas = reg.horas;
+                
+                // Crear una clave única que incluya empleado, lugar y horas
+                const key = `${empleado}-${lugar}-${horas}`;
+                
+                if (!acc[key]) {
+                    acc[key] = {
+                        empleado,
+                        lugar,
+                        horasPorDia: horas,
+                        dias: 1,
+                        totalHoras: horas
+                    };
+                } else {
+                    acc[key].dias += 1;
+                    acc[key].totalHoras += horas;
+                }
+                
+                return acc;
+            }, {});
+    
+            // Configurar columnas para la nueva tabla
+            const detalleColumns = [
+                { header: 'Empleado', dataKey: 'empleado' },
+                { header: 'Lugar', dataKey: 'lugar' },
+                { header: 'Días', dataKey: 'dias' },
+                { header: 'Horas por día', dataKey: 'horasPorDia' },
+                { header: 'Total Horas', dataKey: 'totalHoras' }
+            ];
+    
+            const detalleData = Object.values(resumenDetallado);
+    
+            // Agregar título para la nueva tabla
+            doc.setFontSize(20);
+            const detalleY = doc.lastAutoTable.finalY + 15;
+            doc.text("Resumen por Empleado y Lugar", 105, detalleY, { align: "center" });
+    
+            // Generar la nueva tabla
+            doc.autoTable({
+                columns: detalleColumns,
+                body: detalleData,
+                startY: detalleY + 5,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [66, 66, 66],
+                    textColor: 255,
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                }
+            });
+    
             // Agregar pie de página
             const pageCount = doc.internal.getNumberOfPages();
             doc.setFontSize(8);
@@ -212,7 +285,7 @@ const InformePasado = () => {
                 doc.setPage(i);
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
             }
-
+    
             // Guardar PDF
             doc.save(`Informe_${informeElegido.fechaIni}_${informeElegido.fechaFin}.pdf`);
             notyf.success("PDF generado exitosamente!");
@@ -221,7 +294,6 @@ const InformePasado = () => {
             notyf.error("Error al generar el PDF");
         }
     };
-
 
     const abrirModal=(i)=>{
         setInformeSeleccionado(i);

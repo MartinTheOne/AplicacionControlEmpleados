@@ -5,8 +5,6 @@ export default async function RegistroDiarios(req, res) {
     const client = await connectToDatabase();
     const db = client.db("AplicacionInformeEmpleados");
     const collect = db.collection("registroDiario");
-    const collectEmpleados = db.collection("empleados");
-    const collectLugares = db.collection("lugares");
     const collectInformes = db.collection("informes");
 
     if (req.method == "GET") {
@@ -21,7 +19,7 @@ export default async function RegistroDiarios(req, res) {
                 };
             }
             if (supervisorId) {
-                query.supervisorId = supervisorId;
+                query['supervisor._id']=supervisorId
             }
 
             const ObtenerRegistrosDiarios = await collect.find(query).toArray();
@@ -48,15 +46,15 @@ export default async function RegistroDiarios(req, res) {
     }
     if (req.method == "POST") {
         try {
-            const { fecha, empleado, horas, lugar, presentismo, boleto, supervisorId } = req.body;
+            const { fecha, empleado, horas, lugar, presentismo, boleto, supervisor,adelanto } = req.body;
 
-            if (!fecha || !empleado || !horas || !lugar || !supervisorId) {
+            if (!fecha || !empleado || !horas || !lugar || !supervisor || !(adelanto>=0)) {
                 return res.status(400).json({ error: 'Faltan datos' });
             }
 
             const convertirFecha = new Date(fecha);
             let total = parseFloat(horas) * parseFloat(lugar.precio)
-            const registroDiario = { fecha: convertirFecha, empleado, horas, lugar, total, presentismo, boleto, supervisorId };
+            const registroDiario = { fecha: convertirFecha, empleado, horas, lugar, total, presentismo, boleto, supervisor:supervisor,adelanto };
             const result = await collect.insertOne(registroDiario);
 
             res.status(201).json({ message: 'Registro diario guardado', id: result.insertedId });

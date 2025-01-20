@@ -19,7 +19,7 @@ export default async function Login(req, res) {
         const userExists = await collect.findOne({ user });
         if (userExists && await bcrypt.compare(password, userExists.password)) {
 
-            const token= jwt.sign({ user: userExists._id }, SECRET , {
+            const token= jwt.sign({ user: userExists._id,role:userExists.role,nombre:userExists.user }, SECRET , {
                 expiresIn: '24h'
             });
 

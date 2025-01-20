@@ -8,6 +8,7 @@ const FormInicio = () => {
   const [empleados, setEmpleados] = useState([])
   const [lugares, setLugares] = useState([])
   const [horas, setHoras] = useState("")
+  const [adelanto, setAdelanto] = useState("")
   const [lugar, setLugar] = useState("")
   const [presentismo, setPresentismo] = useState("")
   const [boleto, setBoleto] = useState("")
@@ -15,53 +16,64 @@ const FormInicio = () => {
 
   const token=localStorage.getItem("token");  
   const decodetoken= token? jwtDecode(token):null;
-  const supervisorId=decodetoken?.user;
+  const supervisor=decodetoken? decodetoken:null;
 
   useEffect(() => {
     const obtenerEmpleados = async () => {
-      const empleadosGuardados = localStorage.getItem("empleados");
-
-      if (empleadosGuardados) {
-        setEmpleados(JSON.parse(empleadosGuardados));
-      } else {
-        try {
-          const response = await fetch("/api/Empleados");
-          if (response.ok) {
-            const data = await response.json();
-            setEmpleados(data.Empleados);
-            localStorage.setItem("empleados", JSON.stringify(data.Empleados));
-          } else {
-            console.error("Error al obtener los empleados de la API");
-          }
-        } catch (error) {
-          console.error("Error al conectar con la API:", error);
+        const empleadosGuardados = localStorage.getItem("empleados");
+        if (empleadosGuardados) {
+            const empleadosOrdenados = JSON.parse(empleadosGuardados).sort((a, b) => {
+                return a.nombre.localeCompare(b.nombre);
+            });
+            setEmpleados(empleadosOrdenados);
+        } else {
+            try {
+                const response = await fetch(`/api/Empleados?supervisorId=${supervisor.user}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const empleadosOrdenados = data.Empleados.sort((a, b) => {
+                        return a.nombre.localeCompare(b.nombre);
+                    });
+                    setEmpleados(empleadosOrdenados);
+                    localStorage.setItem("empleados", JSON.stringify(empleadosOrdenados));
+                } else {
+                    console.error("Error al obtener los empleados de la API");
+                }
+            } catch (error) {
+                console.error("Error al conectar con la API:", error);
+            }
         }
-      }
     };
 
     const obtenerLugares = async () => {
-      const lugaresGuardados = localStorage.getItem("lugares");
-      if (lugaresGuardados) {
-        setLugares(JSON.parse(lugaresGuardados));
-      } else {
-        try {
-          const response = await fetch("/api/Lugares");
-          if (response.ok) {
-            const data = await response.json();
-            setLugares(data.Lugares);
-            console.log(data.Lugares)
-            localStorage.setItem("lugares", JSON.stringify(data.Lugares));
-          } else {
-            console.error("Error al obtener los lugares de la API");
-          }
-        } catch (error) {
-          console.error("Error al conectar con la API:", error);
+        const lugaresGuardados = localStorage.getItem("lugares");
+        if (lugaresGuardados) {
+            const lugaresOrdenados = JSON.parse(lugaresGuardados).sort((a, b) => {
+                return a.nombre.localeCompare(b.nombre);
+            });
+            setLugares(lugaresOrdenados);
+        } else {
+            try {
+                const response = await fetch(`/api/Lugares?supervisorId=${supervisor.user}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const lugaresOrdenados = data.Lugares.sort((a, b) => {
+                        return a.nombre.localeCompare(b.nombre);
+                    });
+                    setLugares(lugaresOrdenados);
+                    localStorage.setItem("lugares", JSON.stringify(lugaresOrdenados));
+                } else {
+                    console.error("Error al obtener los lugares de la API");
+                }
+            } catch (error) {
+                console.error("Error al conectar con la API:", error);
+            }
         }
-      }
     };
+
     obtenerLugares();
     obtenerEmpleados();
-  }, []);
+}, []);
 
 
   const guardarRegistro = async () => {
@@ -95,7 +107,8 @@ const FormInicio = () => {
           lugar: lugar,
           presentismo: ponerDatos?presentismo:" ",
           boleto: ponerDatos?boleto:" ",
-          supervisorId:supervisorId
+          supervisor:{nombre:supervisor.nombre,_id:supervisor.user},
+          adelanto:adelanto==""?0:adelanto
         }),
       });
 
@@ -119,7 +132,7 @@ const FormInicio = () => {
       <div className="m-4 mt-[50px]">
         <h2 className="text-[30px] text-center">CONTROL DE EMPLEADOS DIARIO</h2>
       </div>
-      <div className="flex flex-col items-center gap-4 bg-slate-300 h-[700px] w-[330px] rounded-xl p-4 text-[15px]">
+      <div className="flex flex-col items-center gap-4 bg-slate-300 h-[760px] w-[330px] rounded-xl p-4 text-[15px]">
         <div className="flex justify-center w-full m-5">
           <select
             defaultValue=""
@@ -144,7 +157,7 @@ const FormInicio = () => {
         <div className="w-[300px] flex flex-col items-center">
           <div className="w-full text-center">
             <p className="mb-2 text-sm">
-              Ingrese las horas trabajadas de{' '}
+              Ingrese las horas trabajadas de
               <span className="inline-block font-bold">{SelectEmpl.nombre || ''}</span>
             </p>
           </div>
@@ -182,6 +195,20 @@ const FormInicio = () => {
             type="date"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
+          />
+        </div>
+
+        <div className="w-[300px] flex flex-col items-center">
+          <div className="w-full text-center">
+            <p className="mb-2 text-sm">
+              Ingrese adelanto de sueldo</p>
+          </div>
+          <input
+            className="rounded-md p-2 w-[220px]"
+            type="number"
+            placeholder="Ingrese monto..."
+            onChange={(e) => { let a = e.target.value; if (Number(a) >= 0) { setAdelanto(e.target.value) } else setAdelanto("") }}
+            value={adelanto}
           />
         </div>
 

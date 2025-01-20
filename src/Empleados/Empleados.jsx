@@ -18,34 +18,40 @@ const Empleados = () => {
 
   const token = localStorage.getItem("token");
   const decodetoken = token ? jwtDecode(token) : null;
-  const supervisorId = decodetoken?.user;
+  const supervisor = decodetoken?decodetoken:null;
 
   useEffect(() => {
     const obtenerEmpleados = async () => {
-      const traerEmpleados = localStorage.getItem("empleados");
-      if (traerEmpleados) {
-        setEmpleados(JSON.parse(traerEmpleados));
-      } else {
-        setLoading(true)
-        try {
-          const response = await fetch(`/api/Empleados?supervisorId=${supervisorId}`);
-          if (response.ok) {
-            const data = await response.json();
-            setEmpleados(data.Empleados);
-            localStorage.setItem("empleados", JSON.stringify(data.Empleados));
-          } else {
-            console.error("Error al obtener los empleados de la API");
-          }
-        } catch (error) {
-          console.error("Error al conectar con la API:", error);
+        const traerEmpleados = localStorage.getItem("empleados");
+        if (traerEmpleados) {
+            const empleadosOrdenados = JSON.parse(traerEmpleados).sort((a, b) => {
+                return a.nombre.localeCompare(b.nombre);
+            });
+            setEmpleados(empleadosOrdenados);
+        } else {
+            setLoading(true);
+            try {
+                const response = await fetch(`/api/Empleados?supervisorId=${supervisor.user}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Ordenar los empleados antes de guardarlos
+                    const empleadosOrdenados = data.Empleados.sort((a, b) => {
+                        return a.nombre.localeCompare(b.nombre);
+                    });
+                    setEmpleados(empleadosOrdenados);
+                    localStorage.setItem("empleados", JSON.stringify(empleadosOrdenados));
+                } else {
+                    console.error("Error al obtener los empleados de la API");
+                }
+            } catch (error) {
+                console.error("Error al conectar con la API:", error);
+            } finally {
+                setLoading(false);
+            }
         }
-        finally {
-          setLoading(false)
-        }
-      }
-    }
+    };
     obtenerEmpleados();
-  }, []);
+}, []);
 
 
   const itemsPerPage = 5;

@@ -10,7 +10,7 @@ export default async function Empleados(req, res) {
     if (req.method == "GET") {
       try {
         const {supervisorId}=req.query;
-        const Empleados = await collect.find({supervisorId:supervisorId}).toArray();
+        const Empleados = await collect.find({"supervisor._id":supervisorId}).toArray();
         res.status(200).json({ Empleados });
       } catch (error) {
         console.error('Error al traer empleados:', error);
@@ -21,18 +21,20 @@ export default async function Empleados(req, res) {
 
     else if (req.method == "POST") {
       try {
-        const { documento, nombre, alias,supervisorId } = req.body;
+        const { documento, nombre, alias, supervisor } = req.body;
         
-        if (!nombre || !documento || !supervisorId || !alias) {
+        if (!nombre || !documento || !supervisor || !alias) {
           return res.status(400).json({ error: "Faltan llenar campos" });
         }
       
-        const empleadoExiste = await collect.findOne({ documento,supervisorId });
+        const empleadoExiste = await collect.findOne({ documento,"supervisor.supervisorId":supervisor._id });
         if (empleadoExiste) {
           return res.status(400).json({ error: 'Empleado con este documento ya existe' });
         }
+
+
       
-        const nuevoEmpleado = { documento, nombre,alias,supervisorId };
+        const nuevoEmpleado = { documento, nombre,alias,supervisor:supervisor };
         const resul = await collect.insertOne(nuevoEmpleado);
       
         return res.status(201).json({

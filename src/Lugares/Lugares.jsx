@@ -23,15 +23,19 @@ const Lugares = () => {
     const obtenerLugares = async () => {
       const traerLugares = localStorage.getItem("lugares");
       if (traerLugares) {
-        setLugares(JSON.parse(traerLugares));
+        const lugaresOrdenados=JSON.parse(traerLugares).sort((a,b)=>{
+          return a.nombre.localeCompare(b.nombre)
+        })
+        setLugares(lugaresOrdenados);
       } else {
         setLoading(true)
         try {
           const response = await fetch(`/api/Lugares?supervisorId=${supervisorId}`);
           if (response.ok) {
             const data = await response.json();
-            setLugares(data.Lugares);
-            localStorage.setItem("lugares", JSON.stringify(data.Lugares));
+            const empleadosOrdenados=data.Lugares.sort((a,b)=>{return a.nombre.localeCompare(b.nombre)})
+            setLugares(empleadosOrdenados);
+            localStorage.setItem("lugares", JSON.stringify(empleadosOrdenados));
           } else {
             console.error("Error al obtener los empleados de la API");
           }

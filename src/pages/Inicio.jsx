@@ -1,8 +1,13 @@
+import { jwtDecode } from "jwt-decode";
+
 const Inicio = () => {
+  const token=localStorage.getItem("token");
+  const decode= token? jwtDecode(token):null;
+  const nombre=decode?.nombre;
   return (
     <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono bg-gray-100">
       <div className="m-4 mt-[60px]">
-        <h2 className="text-[30px] text-center">BIENVENIDO AL CONTROL DE EMPLEADOS</h2>
+        <h2 className="text-[30px] text-center">BIENVENIDO AL CONTROL DE EMPLEADOS <b>{nombre.toUpperCase() || ""}</b></h2>
       </div>
       <div className="flex flex-col items-center gap-4 bg-slate-300 h-[430px] w-[350px] rounded-xl p-4 text-[15px]">
 

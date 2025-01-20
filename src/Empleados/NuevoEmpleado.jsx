@@ -9,8 +9,7 @@ const NuevoEmpleado = () => {
 
   const token=localStorage.getItem("token");
   const decodetoken= token? jwtDecode(token):null;
-  const supervisorId=decodetoken?.user;
-
+  const supervisor=decodetoken? decodetoken:null;
   const GuardarDatos = async () => {
     if (!nombre || !documento || !alias) return notyf.error("Complete todos los campos!!");
 
@@ -29,7 +28,7 @@ const NuevoEmpleado = () => {
           documento: documento,
           nombre: nombre,
           alias:alias,
-          supervisorId:supervisorId
+          supervisor:{nombre:supervisor.nombre,_id:supervisor.user}
         }),
       });
 

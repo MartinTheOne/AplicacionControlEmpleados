@@ -11,7 +11,7 @@ export default async function Luagres(req, res) {
     if(req.method=="GET"){
       try {
         const { supervisorId}=req.query;
-        const Lugares=await collect.find({supervisorId:supervisorId}).toArray();
+        const Lugares=await collect.find({"supervisor._id":supervisorId}).toArray();
 
         res.status(200).json({Lugares});
       } catch (error) {
@@ -23,16 +23,16 @@ export default async function Luagres(req, res) {
 
     else if(req.method=="POST"){
       try {
-        const { nombre, direccion,precio,supervisorId } = req.body;
-        if (!nombre || !direccion || !precio|| !supervisorId) res.status(400).json({ error: "faltan llenar campos" })
+        const { nombre, direccion,precio,supervisor } = req.body;
+        if (!nombre || !direccion || !precio|| !supervisor) res.status(400).json({ error: "faltan llenar campos" })
 
-        const lugarExiste=await collect.findOne({nombre,supervisorId})
+        const lugarExiste=await collect.findOne({nombre,"supervisor._id":supervisor._id})
 
         if(lugarExiste){
             return res.status(400).json({ error: 'El lugar ya existe' });
         }
 
-        const NuevoLugar = {nombre, direccion,precio,supervisorId }
+        const NuevoLugar = {nombre, direccion,precio,supervisor:supervisor }
             const resul =await collect.insertOne(NuevoLugar);
     
         return res.status(201).json({
