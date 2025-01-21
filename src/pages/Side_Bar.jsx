@@ -19,7 +19,7 @@ const SideBar = ({ role }) => {
     ],
     admin: [
       { icon: <User className="w-6 h-6" />, label: 'Usuarios', link: '/usuarios' },
-      { icon: <Joystick className="w-6 h-6" />, label: 'Control Gastos', link: '/controlgastos' },
+      { icon: <Joystick className="w-6 h-6" />, label: 'Panel de Control', link: '/panelControl' },
     ],
   };
 

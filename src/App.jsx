@@ -11,6 +11,7 @@ import FormInicio from './pages/FormInicio';
 import Inicio from './pages/Inicio';
 import { jwtDecode } from 'jwt-decode';
 import { useState, useEffect } from 'react';
+import GestionUsuarios from './Jefe/Usuarios/GestionUsuarios';
 
 function App() {
   const [role, setRole] = useState(null);
@@ -79,6 +80,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path='/usuarios' element={<GestionUsuarios/>}/>
       <Route path="/inicio" element={<ProtectedRoute><Inicio /></ProtectedRoute>} />
       <Route path="/lugares" element={<ProtectedRoute><GestionLugares /></ProtectedRoute>} />
       <Route path="/empleados" element={<ProtectedRoute><GestionEmpleados /></ProtectedRoute>} />

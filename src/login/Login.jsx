@@ -42,6 +42,7 @@ export default function Login() {
         localStorage.removeItem("lugares");
         localStorage.removeItem("empleados");
         localStorage.removeItem("informes");
+        localStorage.removeItem("usuarios")
         navigate("/inicio")
       } else {
         notyf.error('Usuario o contraseña incorrectos');
