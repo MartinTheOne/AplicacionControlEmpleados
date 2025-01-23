@@ -12,6 +12,9 @@ import Inicio from './pages/Inicio';
 import { jwtDecode } from 'jwt-decode';
 import { useState, useEffect } from 'react';
 import GestionUsuarios from './Jefe/Usuarios/GestionUsuarios';
+import ProtectedRouteAdmin from './ProtectedRouteAdmin';
+import ValidadAmbosUsuarios from "./ValidadAmbosUsuarios"
+import GestionControlGastos from './ControlGastos/GestionControlGastos';
 
 function App() {
   const [role, setRole] = useState(null);
@@ -70,7 +73,7 @@ function AppContent({ role, updateRole }) {
 
   return (
     <>
-      {mostrarSide && role && <SideBar role={role} />}
+      {mostrarSide && role && <ValidadAmbosUsuarios><SideBar role={role}/></ValidadAmbosUsuarios>}
       <AppRoutes />
     </>
   );
@@ -80,13 +83,14 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path='/usuarios' element={<GestionUsuarios/>}/>
-      <Route path="/inicio" element={<ProtectedRoute><Inicio /></ProtectedRoute>} />
+      <Route path='/usuarios' element={<ProtectedRouteAdmin><GestionUsuarios/></ProtectedRouteAdmin>}/>
+      <Route path="/inicio" element={<ValidadAmbosUsuarios><Inicio /></ValidadAmbosUsuarios>} />
       <Route path="/lugares" element={<ProtectedRoute><GestionLugares /></ProtectedRoute>} />
       <Route path="/empleados" element={<ProtectedRoute><GestionEmpleados /></ProtectedRoute>} />
       <Route path="/informe" element={<ProtectedRoute><Informe /></ProtectedRoute>} />
       <Route path="/informesPasados" element={<ProtectedRoute><InformePasado /></ProtectedRoute>} />
       <Route path="/controlEmpleados" element={<ProtectedRoute><FormInicio /></ProtectedRoute>} />
+      <Route path="/controlGastos" element={<ProtectedRoute><GestionControlGastos /></ProtectedRoute>} />
     </Routes>
   );
 }

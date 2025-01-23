@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Users, MapPin, ScrollText, X, Joystick,User } from 'lucide-react';
+import { Menu, Users, MapPin, ScrollText, X, Joystick,User,Receipt  } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 
@@ -15,7 +15,8 @@ const SideBar = ({ role }) => {
       { icon: <MapPin className="w-6 h-6" />, label: 'Lugares', link: '/lugares' },
       { icon: <ScrollText className="w-6 h-6" />, label: 'Informe', link: '/informe' },
       { icon: <ScrollText className="w-6 h-6" />, label: 'Informes Pasados', link: '/informesPasados' },
-      { icon: <Joystick className="w-6 h-6" />, label: 'Control Empleados', link: "/controlEmpleados" }
+      { icon: <Joystick className="w-6 h-6" />, label: 'Control Empleados', link: "/controlEmpleados" },
+      { icon: <Receipt className="w-6 h-6" />, label: 'Control Gastos', link: "/controlGastos" }
     ],
     admin: [
       { icon: <User className="w-6 h-6" />, label: 'Usuarios', link: '/usuarios' },

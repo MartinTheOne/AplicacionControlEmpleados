@@ -1,9 +1,9 @@
 import { Navigate } from "react-router-dom";
-import ValidadSupervisor from "./utils/ValidadSupervisor";
-export default function ProtectedRoute({children}){
+import ValidadAmbosUsuarios from "./utils/ValidadAmbosUsuarios";
+export default function ProtectedAmbosUsuarios({children}){
     const token = localStorage.getItem("token")
 
-    if(ValidadSupervisor(token)){
+    if(ValidadAmbosUsuarios(token)){
         return children;
     }
     else{

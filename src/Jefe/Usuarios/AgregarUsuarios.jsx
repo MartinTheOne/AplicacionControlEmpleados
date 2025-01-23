@@ -39,6 +39,9 @@ const AgregarUsuario = () => {
             } else if (Guardar.status == 400) {
                 notyf.error("Error al guardar usuario");
             }
+            else if(Guardar.status == 401){
+                notyf.error("Ese correo ya esta en uso");
+            }
 
         } catch (error) {
             console.log("Error al guardar empleado:", error);

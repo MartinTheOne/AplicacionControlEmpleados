@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "./db";
-
+import bcrypt from 'bcrypt';
 
 export default async function Usuarios(req, res) {
     try {
@@ -26,9 +26,16 @@ export default async function Usuarios(req, res) {
                 const {user,correo,password,role}=req.body;
                 
                 if(!user||!password||!role||!correo)return res.status(400).json({error:"Faltan datos"})
-                
-                const usuario={user,correo,password,role}
-                const guardar=await collect.insertOne(usuario)
+
+                const usuarioExiste=await collect.findOne({correo});
+                if(usuarioExiste)
+                    {
+                        return res.status(401).json({ error: 'El lugar ya existe' });
+                    } 
+
+                const contrasenaEncrip=await encriptarContrasena(password)
+                const usuario={user,correo,password:contrasenaEncrip,role}
+                await collect.insertOne(usuario)
     
                 res.status(201).json({message:"empleado guardado"})
             } catch (error) {
@@ -78,4 +85,10 @@ export default async function Usuarios(req, res) {
         res.status(500).json({ error: 'Error al conectar con la base de datos' });
     }
    
+}
+
+async function encriptarContrasena(contrasena){
+    const salt=await bcrypt.genSalt(12)
+    const hash=await bcrypt.hash(contrasena,salt)
+    return hash;
 }

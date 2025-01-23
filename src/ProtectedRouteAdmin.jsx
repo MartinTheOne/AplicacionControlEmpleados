@@ -1,9 +1,9 @@
 import { Navigate } from "react-router-dom";
-import ValidadSupervisor from "./utils/ValidadSupervisor";
-export default function ProtectedRoute({children}){
+import ValidadAdmin from "./utils/ValidadAdmin";
+export default function ProtectedRouteAdmin({children}){
     const token = localStorage.getItem("token")
 
-    if(ValidadSupervisor(token)){
+    if(ValidadAdmin(token)){
         return children;
     }
     else{

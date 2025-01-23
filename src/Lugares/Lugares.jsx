@@ -7,7 +7,7 @@ import notyf from "../notificacion/notify";
 
 
 const Lugares = () => {
-  const TABLE_HEAD = ["Nombre", "Direccion", "Precio", "Acciones"];
+  const TABLE_HEAD = ["Nombre", "Direccion","Tipo de Lugar", "Precio", "Acciones"];
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false)
   const [lugares, setLugares] = useState([])
@@ -154,6 +154,9 @@ const Lugares = () => {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {i.direccion}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {i.tipoLugar}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         ${i.precio}

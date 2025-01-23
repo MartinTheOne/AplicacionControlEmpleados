@@ -3,7 +3,6 @@ import notyf from '../notificacion/notify';
 import { useNavigate } from "react-router-dom";
 import ValidadToken from '../utils/validadToken';
 import { useEffect } from 'react';
-import ValidadRole from '../utils/ValidadRole';
 
 export default function Login() {
   const [user, setUser] = useState('');
@@ -13,7 +12,7 @@ export default function Login() {
   const token=localStorage.getItem("token")
  
    useEffect(() => {
-     if (token && ValidadRole(token)) {
+     if (token && ValidadToken(token)) {
        navigate('/inicio');
      }
    }, []);

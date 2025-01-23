@@ -7,6 +7,7 @@ const NuevoLugar = () => {
     const [precio, setPrecio] = useState('')
     const [nombre, setNombre] = useState('')
     const [direccion, setDireccion] = useState('')
+    const [tipoLugar, setTipoLugar] = useState("")
     const [isDisabled, setIsDisabled] = useState(false);
 
     const token=localStorage.getItem("token");  
@@ -14,7 +15,8 @@ const NuevoLugar = () => {
     const supervisor=decodetoken ? decodetoken:null;
 
     const GuardarLugar=async()=>{
-        if(!nombre||parseFloat(precio)<0||!direccion)return notyf.error("Complete todos los campos!!");
+        if(!nombre||parseFloat(precio)<0||!direccion || !tipoLugar)return notyf.error("Complete todos los campos!!");
+
 
         try {
              setIsDisabled(true)
@@ -25,6 +27,7 @@ const NuevoLugar = () => {
                 precio:precio,
                 nombre:nombre,
                 direccion:direccion,
+                tipoLugar:tipoLugar,
                 supervisor:{nombre:supervisor.nombre,_id:supervisor.user}
               }),
         })
@@ -48,7 +51,7 @@ const NuevoLugar = () => {
     }
     return (
         <div className="App flex flex-col items-center min-h-screen h-screen overflow-hidden font-mono bg-gray-100">
-            <div className="flex flex-col items-center gap-4 bg-slate-300 h-[450px] w-[330px] rounded-xl p-4 text-[15px]">
+            <div className="flex flex-col items-center gap-4 bg-slate-300 h-[500px] w-[330px] rounded-xl p-4 text-[15px]">
 
                 <div className="w-[300px] flex flex-col items-center mt-5">
                     <div className="w-full text-center">
@@ -72,6 +75,17 @@ const NuevoLugar = () => {
                         value={direccion}
                         onChange={(e)=>setDireccion(e.target.value)}
                     />
+                </div>
+
+                <div className="w-[300px] flex flex-col items-center mt-3">
+                    <p className="mb-2">Ingrese tipo de lugar</p>
+                    <select name="" id="" className="border rounded-md p-2 w-[220px]" defaultValue="" 
+                    onChange={(e)=>setTipoLugar(e.target.value)}
+                    >
+                        <option disabled value="">Seleccione un tipo</option>
+                        <option value="Privado">Privado</option>
+                        <option value="Publico">Publico</option>
+                    </select>
                 </div>
 
                 <div className="w-[300px] flex flex-col items-center mt-3">

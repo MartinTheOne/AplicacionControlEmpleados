@@ -18,6 +18,8 @@ const NuevoEmpleado = () => {
     if (isNaN(Number(documento)) || documento.trim() === "") {
         return notyf.error("El documento debe ser un número y no puede contener letras, símbolos o estar vacío");
       }
+
+    if(documento.includes("."))return notyf.error("El documento no puede contener puntos")
     
     try {
       setIsDisabled(true);
